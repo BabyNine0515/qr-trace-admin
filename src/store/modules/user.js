@@ -1,4 +1,4 @@
-import { login, logout, getInfo } from '@/api/user'
+// 移除未使用的API导入，使用文件内的模拟实现
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import router, { resetRouter } from '@/router'
 
@@ -29,29 +29,55 @@ const mutations = {
 }
 
 const actions = {
-  // user login
+  // user login - 模拟登录，不需要真实后端
   login({ commit }, userInfo) {
-    const { username, password } = userInfo
+    const { username } = userInfo
     return new Promise((resolve, reject) => {
-      login({ username: username.trim(), password: password }).then(response => {
-        const { data } = response
-        commit('SET_TOKEN', data.token)
-        setToken(data.token)
+      // 模拟API调用延迟
+      setTimeout(() => {
+        // 验证用户名（使用validate.js中的验证规则）
+        if (username.trim() !== 'admin' && username.trim() !== 'editor') {
+          reject('用户名不存在')
+          return
+        }
+
+        // 模拟成功登录，生成token
+        const mockToken = username.trim() + '-token'
+        const mockUserInfo = {
+          roles: username.trim() === 'admin' ? ['admin'] : ['editor'],
+          name: username.trim() === 'admin' ? '超级管理员' : '编辑者',
+          avatar: 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
+          introduction: '我是一名' + (username.trim() === 'admin' ? '超级管理员' : '编辑者')
+        }
+
+        // 存储用户信息到localStorage供getInfo使用
+        localStorage.setItem('userInfo', JSON.stringify(mockUserInfo))
+
+        commit('SET_TOKEN', mockToken)
+        setToken(mockToken)
         resolve()
-      }).catch(error => {
-        reject(error)
-      })
+      }, 500)
     })
   },
 
-  // get user info
+  // get user info - 模拟获取用户信息
   getInfo({ commit, state }) {
     return new Promise((resolve, reject) => {
-      getInfo(state.token).then(response => {
-        const { data } = response
+      // 模拟API调用延迟
+      setTimeout(() => {
+        // 从localStorage获取用户信息
+        const userInfoStr = localStorage.getItem('userInfo')
+
+        if (!userInfoStr) {
+          reject('未找到用户信息，请重新登录')
+          return
+        }
+
+        const data = JSON.parse(userInfoStr)
 
         if (!data) {
           reject('Verification failed, please Login again.')
+          return
         }
 
         const { roles, name, avatar, introduction } = data
@@ -59,6 +85,7 @@ const actions = {
         // roles must be a non-empty array
         if (!roles || roles.length <= 0) {
           reject('getInfo: roles must be a non-null array!')
+          return
         }
 
         commit('SET_ROLES', roles)
@@ -66,29 +93,34 @@ const actions = {
         commit('SET_AVATAR', avatar)
         commit('SET_INTRODUCTION', introduction)
         resolve(data)
-      }).catch(error => {
-        reject(error)
-      })
+      }, 300)
     })
   },
 
-  // user logout
+  // user logout - 模拟登出
   logout({ commit, state, dispatch }) {
     return new Promise((resolve, reject) => {
-      logout(state.token).then(() => {
-        commit('SET_TOKEN', '')
-        commit('SET_ROLES', [])
-        removeToken()
-        resetRouter()
+      // 模拟API调用延迟
+      setTimeout(() => {
+        try {
+          commit('SET_TOKEN', '')
+          commit('SET_ROLES', [])
+          removeToken()
+          // 清除localStorage中的用户信息
+          localStorage.removeItem('userInfo')
+          // 清除溯源码数据（可选，根据需求决定）
+          // localStorage.removeItem('traceabilityCodes')
+          resetRouter()
 
-        // reset visited views and cached views
-        // to fixed https://github.com/PanJiaChen/vue-element-admin/issues/2485
-        dispatch('tagsView/delAllViews', null, { root: true })
+          // reset visited views and cached views
+          // to fixed https://github.com/PanJiaChen/vue-element-admin/issues/2485
+          dispatch('tagsView/delAllViews', null, { root: true })
 
-        resolve()
-      }).catch(error => {
-        reject(error)
-      })
+          resolve()
+        } catch (error) {
+          reject(error)
+        }
+      }, 300)
     })
   },
 
@@ -98,6 +130,8 @@ const actions = {
       commit('SET_TOKEN', '')
       commit('SET_ROLES', [])
       removeToken()
+      // 清除localStorage中的用户信息
+      localStorage.removeItem('userInfo')
       resolve()
     })
   },

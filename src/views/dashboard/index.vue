@@ -13,7 +13,7 @@
               </div>
             </div>
             <div class="right">
-              <i class="el-icon-s-data" style="font-size: 48px; color: #409EFF;"></i>
+              <i class="el-icon-s-data" style="font-size: 48px; color: #409EFF;" />
             </div>
           </div>
         </el-card>
@@ -31,7 +31,7 @@
               </div>
             </div>
             <div class="right">
-              <i class="el-icon-user" style="font-size: 48px; color: #67C23A;"></i>
+              <i class="el-icon-user" style="font-size: 48px; color: #67C23A;" />
             </div>
           </div>
         </el-card>
@@ -49,7 +49,7 @@
               </div>
             </div>
             <div class="right">
-              <i class="el-icon-sold-out" style="font-size: 48px; color: #E6A23C;"></i>
+              <i class="el-icon-sold-out" style="font-size: 48px; color: #E6A23C;" />
             </div>
           </div>
         </el-card>

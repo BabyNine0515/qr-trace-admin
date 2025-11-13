@@ -161,11 +161,13 @@ export default {
               this.$router.push({ path: this.redirect || '/', query: this.otherQuery })
               this.loading = false
             })
-            .catch(() => {
+            .catch(error => {
               this.loading = false
+              // 添加错误提示
+              this.$message.error(error || '登录失败，请重试')
             })
         } else {
-          console.log('error submit!!')
+          console.log('表单验证失败!')
           return false
         }
       })

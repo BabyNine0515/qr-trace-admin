@@ -52,17 +52,13 @@ import Breadcrumb from '@/components/Breadcrumb'
 import Hamburger from '@/components/Hamburger'
 import ErrorLog from '@/components/ErrorLog'
 import Screenfull from '@/components/Screenfull'
-import SizeSelect from '@/components/SizeSelect'
-import Search from '@/components/HeaderSearch'
 
 export default {
   components: {
     Breadcrumb,
     Hamburger,
     ErrorLog,
-    Screenfull,
-    SizeSelect,
-    Search
+    Screenfull
   },
   computed: {
     ...mapGetters([
