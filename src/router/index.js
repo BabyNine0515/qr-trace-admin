@@ -192,11 +192,11 @@ export const asyncRoutes = [
       }
     ]
   },
-  // 溯源码管理作为父菜单栏，其他菜单作为其子菜单
+  // 溯源码管理
   {
     path: '/traceability',
     component: Layout,
-    redirect: '/traceability/product/list',
+    redirect: '/traceability/qrcode',
     alwaysShow: true,
     name: 'Traceability',
     meta: {
@@ -214,242 +214,262 @@ export const asyncRoutes = [
           title: '溯源码二维码',
           icon: 'el-icon-qrcode'
         }
-      },
+      }
+    ]
+  },
 
-      // 产品管理
+  // 产品管理 - 作为独立顶级菜单
+  {
+    path: '/product',
+    component: Layout,
+    redirect: '/product/list',
+    alwaysShow: true,
+    name: 'Product',
+    meta: {
+      title: '产品管理',
+      icon: 'el-icon-goods',
+      roles: ['admin', 'editor']
+    },
+    children: [
       {
-        path: 'product',
-        redirect: '/traceability/product/list',
-        name: 'Product',
+        path: 'list',
+        component: () => import('@/views/product/list'),
+        name: 'ProductList',
         meta: {
-          title: '产品管理',
-          icon: 'el-icon-goods'
-        },
-        children: [
-          {
-            path: 'list',
-            component: () => import('@/views/product/list'),
-            name: 'ProductList',
-            meta: {
-              title: '产品列表',
-              icon: 'el-icon-s-order'
-            }
-          },
-          {
-            path: 'edit',
-            component: () => import('@/views/product/edit'),
-            name: 'ProductEdit',
-            meta: {
-              title: '产品详情编辑',
-              icon: 'el-icon-edit'
-            }
-          },
-          {
-            path: 'status',
-            component: () => import('@/views/product/status'),
-            name: 'ProductStatus',
-            meta: {
-              title: '产品发布/下架管理',
-              icon: 'el-icon-switch-button'
-            }
-          }
-        ]
+          title: '产品列表',
+          icon: 'el-icon-s-order'
+        }
       },
-
-      // 媒体资源管理
       {
-        path: 'media',
-        redirect: '/traceability/media/image',
-        name: 'Media',
+        path: 'edit',
+        component: () => import('@/views/product/edit'),
+        name: 'ProductEdit',
         meta: {
-          title: '媒体资源管理',
-          icon: 'el-icon-picture'
-        },
-        children: [
-          {
-            path: 'image',
-            component: () => import('@/views/media/image'),
-            name: 'ImageLibrary',
-            meta: {
-              title: '图片库管理',
-              icon: 'el-icon-image'
-            }
-          },
-          {
-            path: 'video',
-            component: () => import('@/views/media/video'),
-            name: 'VideoLibrary',
-            meta: {
-              title: '视频库管理',
-              icon: 'el-icon-video-play'
-            }
-          },
-          {
-            path: 'upload',
-            component: () => import('@/views/media/upload'),
-            name: 'MediaUpload',
-            meta: {
-              title: '媒体文件上传',
-              icon: 'el-icon-upload'
-            }
-          }
-        ]
+          title: '产品详情编辑',
+          icon: 'el-icon-edit'
+        }
       },
-
-      // 公司信息管理
       {
-        path: 'company',
-        redirect: '/traceability/company/basic-info',
-        name: 'Company',
+        path: 'status',
+        component: () => import('@/views/product/status'),
+        name: 'ProductStatus',
         meta: {
-          title: '公司信息管理',
-          icon: 'el-icon-office-building'
-        },
-        children: [
-          {
-            path: 'basic-info',
-            component: () => import('@/views/company/basic-info.vue'),
-            name: 'CompanyBasic',
-            meta: {
-              title: '公司基本信息',
-              icon: 'el-icon-info'
-            }
-          },
-          {
-            path: 'qualifications',
-            component: () => import('@/views/company/qualifications.vue'),
-            name: 'CompanyQualification',
-            meta: {
-              title: '公司资质管理',
-              icon: 'el-icon-certificate'
-            }
-          },
-          {
-            path: 'promotion-media',
-            component: () => import('@/views/company/promotion-media.vue'),
-            name: 'CompanyPromotion',
-            meta: {
-              title: '公司宣传媒体',
-              icon: 'el-icon-guide'
-            }
-          }
-        ]
+          title: '产品发布/下架管理',
+          icon: 'el-icon-switch-button'
+        }
+      }
+    ]
+  },
+
+  // 媒体资源管理 - 作为独立顶级菜单
+  {
+    path: '/media',
+    component: Layout,
+    redirect: '/media/image',
+    alwaysShow: true,
+    name: 'Media',
+    meta: {
+      title: '媒体资源管理',
+      icon: 'el-icon-picture',
+      roles: ['admin', 'editor']
+    },
+    children: [
+      {
+        path: 'image',
+        component: () => import('@/views/media/image'),
+        name: 'ImageLibrary',
+        meta: {
+          title: '图片库管理',
+          icon: 'el-icon-image'
+        }
       },
-
-      // 生产信息管理
       {
-        path: 'production',
-        redirect: '/traceability/production/upstream-info',
-        name: 'Production',
+        path: 'video',
+        component: () => import('@/views/media/video'),
+        name: 'VideoLibrary',
         meta: {
-          title: '生产信息管理',
-          icon: 'el-icon-factory'
-        },
-        children: [
-          {
-            path: 'upstream-info',
-            component: () => import('@/views/production/upstream-info.vue'),
-            name: 'UpstreamInfo',
-            meta: {
-              title: '上游生产信息',
-              icon: 'el-icon-link'
-            }
-          },
-          {
-            path: 'factory-management',
-            component: () => import('@/views/production/factory-management.vue'),
-            name: 'FactoryManagement',
-            meta: {
-              title: '生产厂家管理',
-              icon: 'el-icon-management'
-            }
-          }
-        ]
+          title: '视频库管理',
+          icon: 'el-icon-video-play'
+        }
       },
-
-      // 质量信息管理
       {
-        path: 'quality',
-        redirect: '/traceability/quality/report-management',
-        name: 'Quality',
+        path: 'upload',
+        component: () => import('@/views/media/upload'),
+        name: 'MediaUpload',
         meta: {
-          title: '质量信息管理',
-          icon: 'el-icon-quality'
-        },
-        children: [
-          {
-            path: 'report-management',
-            component: () => import('@/views/quality/report-management.vue'),
-            name: 'QualityReport',
-            meta: {
-              title: '检验报告管理',
-              icon: 'el-icon-document'
-            }
-          }
-        ]
+          title: '媒体文件上传',
+          icon: 'el-icon-upload'
+        }
+      }
+    ]
+  },
+
+  // 公司信息管理 - 作为独立顶级菜单
+  {
+    path: '/company',
+    component: Layout,
+    redirect: '/company/basic-info',
+    alwaysShow: true,
+    name: 'Company',
+    meta: {
+      title: '公司信息管理',
+      icon: 'el-icon-office-building',
+      roles: ['admin', 'editor']
+    },
+    children: [
+      {
+        path: 'basic-info',
+        component: () => import('@/views/company/basic-info.vue'),
+        name: 'CompanyBasic',
+        meta: {
+          title: '公司基本信息',
+          icon: 'el-icon-info'
+        }
       },
-
-      // 评论互动管理
       {
-        path: 'comment',
-        redirect: '/traceability/comment/comment-list',
-        name: 'Comment',
+        path: 'qualifications',
+        component: () => import('@/views/company/qualifications.vue'),
+        name: 'CompanyQualification',
         meta: {
-          title: '评论互动管理',
-          icon: 'el-icon-message'
-        },
-        children: [
-          {
-            path: 'comment-list',
-            component: () => import('@/views/comment/comment-list.vue'),
-            name: 'CommentList',
-            meta: {
-              title: '评论列表',
-              icon: 'el-icon-s-order'
-            }
-          },
-          {
-            path: 'comment-approval',
-            component: () => import('@/views/comment/comment-approval.vue'),
-            name: 'CommentApproval',
-            meta: {
-              title: '评论审核',
-              icon: 'el-icon-check'
-            }
-          }
-        ]
+          title: '公司资质管理',
+          icon: 'el-icon-certificate'
+        }
       },
-
-      // 系统设置
       {
-        path: 'system',
-        redirect: '/traceability/system/user',
-        name: 'System',
+        path: 'promotion-media',
+        component: () => import('@/views/company/promotion-media.vue'),
+        name: 'CompanyPromotion',
         meta: {
-          title: '系统设置',
-          icon: 'el-icon-setting',
-          roles: ['admin']
-        },
-        children: [
-          {
-            path: 'user',
-            component: () => import('@/views/system/user'),
-            name: 'UserPermission',
-            meta: {
-              title: '用户权限管理',
-              icon: 'el-icon-user'
-            }
-          },
-          {
-            path: 'config',
-            component: () => import('@/views/system/config'),
-            name: 'SystemConfig',
-            meta: {
-              title: '系统配置',
-              icon: 'el-icon-s-tools'
-            }
-          }
-        ]
+          title: '公司宣传媒体',
+          icon: 'el-icon-guide'
+        }
+      }
+    ]
+  },
+
+  // 生产信息管理 - 作为独立顶级菜单
+  {
+    path: '/production',
+    component: Layout,
+    redirect: '/production/upstream-info',
+    alwaysShow: true,
+    name: 'Production',
+    meta: {
+      title: '生产信息管理',
+      icon: 'el-icon-factory',
+      roles: ['admin', 'editor']
+    },
+    children: [
+      {
+        path: 'upstream-info',
+        component: () => import('@/views/production/upstream-info.vue'),
+        name: 'UpstreamInfo',
+        meta: {
+          title: '上游生产信息',
+          icon: 'el-icon-link'
+        }
+      },
+      {
+        path: 'factory-management',
+        component: () => import('@/views/production/factory-management.vue'),
+        name: 'FactoryManagement',
+        meta: {
+          title: '生产厂家管理',
+          icon: 'el-icon-management'
+        }
+      }
+    ]
+  },
+
+  // 质量信息管理 - 作为独立顶级菜单
+  {
+    path: '/quality',
+    component: Layout,
+    redirect: '/quality/report-management',
+    alwaysShow: true,
+    name: 'Quality',
+    meta: {
+      title: '质量信息管理',
+      icon: 'el-icon-quality',
+      roles: ['admin', 'editor']
+    },
+    children: [
+      {
+        path: 'report-management',
+        component: () => import('@/views/quality/report-management.vue'),
+        name: 'QualityReport',
+        meta: {
+          title: '检验报告管理',
+          icon: 'el-icon-document'
+        }
+      }
+    ]
+  },
+
+  // 评论互动管理 - 作为独立顶级菜单
+  {
+    path: '/comment',
+    component: Layout,
+    redirect: '/comment/comment-list',
+    alwaysShow: true,
+    name: 'Comment',
+    meta: {
+      title: '评论互动管理',
+      icon: 'el-icon-message',
+      roles: ['admin', 'editor']
+    },
+    children: [
+      {
+        path: 'comment-list',
+        component: () => import('@/views/comment/comment-list.vue'),
+        name: 'CommentList',
+        meta: {
+          title: '评论列表',
+          icon: 'el-icon-s-order'
+        }
+      },
+      {
+        path: 'comment-approval',
+        component: () => import('@/views/comment/comment-approval.vue'),
+        name: 'CommentApproval',
+        meta: {
+          title: '评论审核',
+          icon: 'el-icon-check'
+        }
+      }
+    ]
+  },
+
+  // 系统设置 - 作为独立顶级菜单
+  {
+    path: '/system',
+    component: Layout,
+    redirect: '/system/user',
+    alwaysShow: true,
+    name: 'System',
+    meta: {
+      title: '系统设置',
+      icon: 'el-icon-setting',
+      roles: ['admin']
+    },
+    children: [
+      {
+        path: 'user',
+        component: () => import('@/views/system/user'),
+        name: 'UserPermission',
+        meta: {
+          title: '用户权限管理',
+          icon: 'el-icon-user'
+        }
+      },
+      {
+        path: 'config',
+        component: () => import('@/views/system/config'),
+        name: 'SystemConfig',
+        meta: {
+          title: '系统配置',
+          icon: 'el-icon-s-tools'
+        }
       }
     ]
   },

@@ -224,6 +224,9 @@
 </template>
 
 <script>
+import { getProductById, createProduct, updateProduct } from '@/api/product'
+import { uploadImage, uploadVideo } from '@/api/media'
+
 export default {
   name: 'ProductEdit',
   data() {
@@ -261,6 +264,10 @@ export default {
           { required: true, message: '请选择产品分类', trigger: 'change' }
         ]
       },
+      loading: false,
+      loading: false,
+      loading: false,
+      loading: false,
       imageList: [],
       videoUrl: '',
       dialogVisible: false,
@@ -293,39 +300,40 @@ export default {
   },
   methods: {
     // 加载产品数据
-    loadProductData() {
-      // 模拟API调用，加载产品数据
-      setTimeout(() => {
+    async loadProductData() {
+      try {
+        this.loading = true
+        const response = await getProductById(this.productId)
+        const { data } = response
+        
         this.productForm = {
-          name: '八公山酱牛肉',
-          batch: '20251101',
-          productionDate: '2025-11-01',
-          launchDate: '2025-11-02',
-          category: 'meat',
-          brand: '八公山',
-          origin: '安徽省淮南市',
-          certifications: ['有机认证', '地理标志'],
-          hasGeographicMark: true,
-          usageMethod: '开袋即食，或加热后食用',
-          description: '采用传统工艺制作，肉质鲜嫩，口感醇厚。',
-          reportIds: [1],
-          manufacturerId: 1,
-          upstreamInfoId: 1
+          name: data.name,
+          batch: data.batch,
+          productionDate: data.productionDate,
+          launchDate: data.launchDate,
+          category: data.category,
+          brand: data.brand,
+          origin: data.origin,
+          certifications: data.certifications || [],
+          hasGeographicMark: data.hasGeographicMark || false,
+          usageMethod: data.usageMethod,
+          description: data.description,
+          reportIds: data.reportIds || [],
+          manufacturerId: data.manufacturerId,
+          upstreamInfoId: data.upstreamInfoId
         }
-        // 模拟已上传的图片
-        this.imageList = [
-          {
-            name: 'product1.jpg',
-            url: 'https://via.placeholder.com/300x300?text=Product+Image+1'
-          },
-          {
-            name: 'product2.jpg',
-            url: 'https://via.placeholder.com/300x300?text=Product+Image+2'
-          }
-        ]
-        // 模拟已上传的视频
-        this.videoUrl = 'https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4'
-      }, 500)
+        
+        // 加载产品图片
+        this.imageList = data.images || []
+        
+        // 加载产品视频
+        this.videoUrl = data.videoUrl || ''
+      } catch (error) {
+        this.$message.error('加载产品数据失败: ' + (error.message || '未知错误'))
+        console.error('加载产品数据失败:', error)
+      } finally {
+        this.loading = false
+      }
     },
 
     // 图片预览
@@ -340,10 +348,24 @@ export default {
     },
 
     // 图片变化
-    handleImageChange(file, fileList) {
-      // 模拟上传成功
+    async handleImageChange(file, fileList) {
       if (file.status === 'success') {
+        // 这里应该根据实际上传组件的行为进行调整
+        // 假设上传组件已经处理了上传，我们只需要更新列表
         this.imageList = fileList
+      }
+    },
+    
+    // 上传图片
+    async beforeAvatarUpload(file) {
+      try {
+        const formData = new FormData()
+        formData.append('file', file)
+        const response = await uploadImage(formData)
+        return response.data.url
+      } catch (error) {
+        this.$message.error('图片上传失败: ' + (error.message || '未知错误'))
+        return false
       }
     },
 
@@ -367,10 +389,17 @@ export default {
     },
 
     // 视频上传成功
-    handleVideoSuccess(response, file) {
-      // 模拟上传成功
-      this.videoUrl = URL.createObjectURL(file.raw)
-      this.$message({ type: 'success', message: '视频上传成功' })
+    async handleVideoSuccess(response, file) {
+      try {
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('type', 'video')
+        const result = await uploadVideo(formData)
+        this.videoUrl = result.data.url
+        this.$message({ type: 'success', message: '视频上传成功' })
+      } catch (error) {
+        this.$message.error('视频上传失败: ' + (error.message || '未知错误'))
+      }
     },
 
     // 视频上传超过数量限制
@@ -384,14 +413,36 @@ export default {
     },
 
     // 提交表单
-    handleSubmit() {
-      this.$refs.productForm.validate((valid) => {
+    async handleSubmit() {
+      this.$refs.productForm.validate(async (valid) => {
         if (valid) {
-          // 模拟提交数据
-          setTimeout(() => {
-            this.$message({ type: 'success', message: this.isEdit ? '编辑成功' : '添加成功' })
+          try {
+            this.loading = true
+            
+            // 准备提交数据
+            const submitData = {
+              ...this.productForm,
+              images: this.imageList.map(img => img.url),
+              videoUrl: this.videoUrl
+            }
+            
+            if (this.isEdit) {
+              // 编辑产品
+              await updateProduct(this.productId, submitData)
+              this.$message({ type: 'success', message: '编辑成功' })
+            } else {
+              // 新增产品
+              await createProduct(submitData)
+              this.$message({ type: 'success', message: '添加成功' })
+            }
+            
             this.$router.push('/product/list')
-          }, 500)
+          } catch (error) {
+            this.$message.error((this.isEdit ? '编辑' : '添加') + '失败: ' + (error.message || '未知错误'))
+            console.error((this.isEdit ? '编辑' : '添加') + '产品失败:', error)
+          } finally {
+            this.loading = false
+          }
         } else {
           return false
         }

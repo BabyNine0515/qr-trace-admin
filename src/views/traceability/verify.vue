@@ -94,6 +94,8 @@
 </template>
 
 <script>
+import { verifyTraceability, saveVerifyHistory } from '@/api/traceability'
+
 export default {
   name: 'VerifyTraceability',
   data() {
@@ -132,41 +134,32 @@ export default {
       this.$refs.verifyForm.validate((valid) => {
         if (valid) {
           this.loading = true
-          // 模拟网络延迟
-          setTimeout(() => {
-            // 从localStorage获取数据
-            const data = JSON.parse(localStorage.getItem('traceabilityCodes') || '[]')
-            // 查找溯源码
-            const item = data.find(item => item.code.toUpperCase() === this.verifyForm.code.toUpperCase())
-
-            this.loading = false
-            this.resultVisible = true
-
-            if (item) {
-              if (item.status) {
-                this.verifyResult = {
-                  status: 'success',
-                  message: '溯源码有效',
-                  data: item
-                }
-                this.$message({ type: 'success', message: '验证成功' })
-                // 保存验证记录
-                this.saveVerifyHistory(item)
-              } else {
-                this.verifyResult = {
-                  status: 'error',
-                  message: '溯源码已失效'
-                }
-                this.$message({ type: 'error', message: '溯源码已失效' })
+          
+          // 调用真实的验证API
+          verifyTraceability(this.verifyForm.code)
+            .then(res => {
+              this.loading = false
+              this.resultVisible = true
+              
+              this.verifyResult = {
+                status: 'success',
+                message: '溯源码有效',
+                data: res.data
               }
-            } else {
+              this.$message({ type: 'success', message: '验证成功' })
+              // 保存验证记录
+              this.saveVerifyHistory(res.data)
+            })
+            .catch(error => {
+              this.loading = false
+              this.resultVisible = true
+              
               this.verifyResult = {
                 status: 'error',
-                message: '未找到该溯源码，请检查输入是否正确'
+                message: error.response?.data?.message || '验证失败，请检查溯源码是否正确'
               }
-              this.$message({ type: 'error', message: '未找到该溯源码' })
-            }
-          }, 500)
+              this.$message({ type: 'error', message: this.verifyResult.message })
+            })
         }
       })
     },
@@ -234,18 +227,28 @@ export default {
 
     // 保存验证历史
     saveVerifyHistory(item) {
-      try {
-        const history = JSON.parse(localStorage.getItem('verifyHistory') || '[]')
-        history.push({
-          code: item.code,
-          productName: item.productName,
-          verifyTime: new Date().toISOString(),
-          result: 'success'
-        })
-        localStorage.setItem('verifyHistory', JSON.stringify(history))
-      } catch (e) {
-        console.error('保存验证历史失败', e)
+      const historyData = {
+        code: item.code,
+        productName: item.productName,
+        verifyTime: new Date().toISOString(),
+        result: 'success'
       }
+      
+      saveVerifyHistory(historyData)
+        .then(() => {
+          console.log('验证历史保存成功')
+        })
+        .catch(error => {
+          console.error('保存验证历史失败:', error)
+          // 失败时仍然使用localStorage作为备用
+          try {
+            const history = JSON.parse(localStorage.getItem('verifyHistory') || '[]')
+            history.push(historyData)
+            localStorage.setItem('verifyHistory', JSON.stringify(history))
+          } catch (e) {
+            console.error('localStorage备用保存也失败:', e)
+          }
+        })
     },
 
     // 格式化日期时间

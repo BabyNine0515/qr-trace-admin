@@ -92,6 +92,8 @@
 </template>
 
 <script>
+import { generateQRCode, getQRCodeList, deleteQRCode } from '@/api/traceability'
+
 export default {
   name: 'TraceabilityQRCode',
   data() {
@@ -122,31 +124,36 @@ export default {
         return
       }
 
-      // 模拟后端API调用，实际项目中应该调用真实的API
-      // 这里我们直接生成一个模拟的二维码URL和溯源链接
-      const baseUrl = window.location.origin
-      const traceabilityPath = '/public/traceability/verify'
-      this.traceabilityLink = `${baseUrl}${traceabilityPath}?productId=${this.searchForm.productId}`
-
-      // 使用qrserver生成二维码，实际项目中可能由后端生成
-      this.qrcodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(this.traceabilityLink)}`
-
-      this.linkDescription = `该二维码链接指向溯源码验证页面，用户扫描后会跳转到溯源码管理的前端客户端应用，前端会通过链接中携带的productId=${this.searchForm.productId}参数获取相应的产品信息。${this.searchForm.productName ? `产品名称：${this.searchForm.productName}` : ''}`
-
-      // 将新生成的二维码添加到列表中
-      const newQRCode = {
-        id: Date.now(),
+      const params = {
         productId: this.searchForm.productId,
-        qrcodeUrl: this.qrcodeUrl,
-        traceabilityLink: this.traceabilityLink,
-        createTime: new Date().toLocaleString()
+        productName: this.searchForm.productName
       }
 
-      // 模拟添加到后端数据库，实际项目中应该调用API保存
-      this.qrcodeList.unshift(newQRCode)
-      this.total++
+      this.$loading({
+        lock: true,
+        text: '正在生成二维码...',
+        spinner: 'el-icon-loading'
+      })
 
-      this.$message.success('二维码生成成功')
+      generateQRCode(params)
+        .then(response => {
+          const { qrcodeUrl, traceabilityLink } = response.data
+          this.qrcodeUrl = qrcodeUrl
+          this.traceabilityLink = traceabilityLink
+          
+          this.linkDescription = `该二维码链接指向溯源码验证页面，用户扫描后会跳转到溯源码H5页面，前端会通过链接中携带的productId=${this.searchForm.productId}参数获取相应的产品信息。${this.searchForm.productName ? `产品名称：${this.searchForm.productName}` : ''}`
+          
+          this.$message.success('二维码生成成功')
+          // 重新获取列表以显示最新生成的二维码
+          this.fetchQRCodeList()
+        })
+        .catch(error => {
+          console.error('生成二维码失败:', error)
+          this.$message.error('生成二维码失败，请稍后重试')
+        })
+        .finally(() => {
+          this.$loading().close()
+        })
     },
 
     // 下载二维码
@@ -193,32 +200,40 @@ export default {
 
     // 获取二维码列表
     fetchQRCodeList() {
-      // 模拟后端API调用，获取已生成的二维码列表
-      // 实际项目中应该调用真实的API
-      this.qrcodeList = [
-        {
-          id: 1,
-          productId: 'PROD001',
-          qrcodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(`${window.location.origin}/public/traceability/verify?productId=PROD001`)}`,
-          traceabilityLink: `${window.location.origin}/public/traceability/verify?productId=PROD001`,
-          createTime: '2024-01-15 10:30:00'
-        },
-        {
-          id: 2,
-          productId: 'PROD002',
-          qrcodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(`${window.location.origin}/public/traceability/verify?productId=PROD002`)}`,
-          traceabilityLink: `${window.location.origin}/public/traceability/verify?productId=PROD002`,
-          createTime: '2024-01-15 11:45:00'
-        },
-        {
-          id: 3,
-          productId: 'PROD003',
-          qrcodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(`${window.location.origin}/public/traceability/verify?productId=PROD003`)}`,
-          traceabilityLink: `${window.location.origin}/public/traceability/verify?productId=PROD003`,
-          createTime: '2024-01-15 14:20:00'
-        }
-      ]
-      this.total = this.qrcodeList.length
+      const params = {
+        page: this.currentPage,
+        pageSize: this.pageSize
+      }
+
+      this.$loading({
+        lock: true,
+        text: '正在加载数据...',
+        spinner: 'el-icon-loading'
+      })
+
+      getQRCodeList(params)
+        .then(response => {
+          this.qrcodeList = response.data.list
+          this.total = response.data.total
+        })
+        .catch(error => {
+          console.error('获取二维码列表失败:', error)
+          this.$message.error('获取数据失败，请稍后重试')
+          // 如果API调用失败，使用模拟数据显示
+          this.qrcodeList = [
+            {
+              id: 1,
+              productId: '374643833609',
+              qrcodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent('https://h5.xiangtaihou-food.com/verify?productId=374643833609')}`,
+              traceabilityLink: 'https://h5.xiangtaihou-food.com/verify?productId=374643833609',
+              createTime: '2024-01-15 10:30:00'
+            }
+          ]
+          this.total = this.qrcodeList.length
+        })
+        .finally(() => {
+          this.$loading().close()
+        })
     },
 
     // 分页处理
@@ -262,10 +277,25 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        // 模拟删除操作，实际项目中应该调用API删除
-        this.qrcodeList = this.qrcodeList.filter(item => item.id !== id)
-        this.total--
-        this.$message.success('删除成功')
+        this.$loading({
+          lock: true,
+          text: '正在删除...',
+          spinner: 'el-icon-loading'
+        })
+
+        deleteQRCode(id)
+          .then(() => {
+            this.qrcodeList = this.qrcodeList.filter(item => item.id !== id)
+            this.total--
+            this.$message.success('删除成功')
+          })
+          .catch(error => {
+            console.error('删除二维码失败:', error)
+            this.$message.error('删除失败，请稍后重试')
+          })
+          .finally(() => {
+            this.$loading().close()
+          })
       }).catch(() => {
         // 取消删除
       })

@@ -121,6 +121,8 @@
 </template>
 
 <script>
+import { getProductList, publishProduct, unpublishProduct, batchPublishProducts, batchUnpublishProducts } from '@/api/product'
+
 export default {
   name: 'ProductStatus',
   data() {
@@ -142,63 +144,27 @@ export default {
   },
   methods: {
     // 获取数据
-    fetchData() {
+    async fetchData() {
       this.loading = true
-      // 模拟API调用
-      setTimeout(() => {
-        this.productList = [
-          {
-            id: 1,
-            name: '八公山酱牛肉',
-            batch: '20251101',
-            category: 'meat',
-            brand: '八公山',
-            origin: '安徽省淮南市',
-            status: 'on_sale',
-            launchDate: '2025-11-02',
-            createdAt: '2025-11-01 08:00:00',
-            coverImage: 'https://via.placeholder.com/80x80?text=Product+1'
-          },
-          {
-            id: 2,
-            name: '淮南豆腐',
-            batch: '20251102',
-            category: 'other',
-            brand: '八公山',
-            origin: '安徽省淮南市',
-            status: 'off_sale',
-            launchDate: '2025-11-03',
-            createdAt: '2025-11-02 10:00:00',
-            coverImage: 'https://via.placeholder.com/80x80?text=Product+2'
-          },
-          {
-            id: 3,
-            name: '新鲜蔬菜礼盒',
-            batch: '20251101',
-            category: 'vegetable',
-            brand: '绿色生态',
-            origin: '安徽省合肥市',
-            status: 'pending',
-            launchDate: '',
-            createdAt: '2025-11-01 14:00:00',
-            coverImage: 'https://via.placeholder.com/80x80?text=Product+3'
-          },
-          {
-            id: 4,
-            name: '有机苹果',
-            batch: '20251101',
-            category: 'fruit',
-            brand: '生态果园',
-            origin: '山东省烟台市',
-            status: 'on_sale',
-            launchDate: '2025-11-02',
-            createdAt: '2025-11-01 09:00:00',
-            coverImage: 'https://via.placeholder.com/80x80?text=Product+4'
-          }
-        ]
-        this.total = 120
+      try {
+        const params = {
+          page: this.currentPage,
+          pageSize: this.pageSize,
+          keyword: this.searchForm.keyword,
+          status: this.searchForm.status
+        }
+        
+        const response = await getProductList(params)
+        const { data, total } = response
+        
+        this.productList = data || []
+        this.total = total || 0
+      } catch (error) {
+        this.$message.error('获取产品列表失败: ' + (error.message || '未知错误'))
+        console.error('获取产品列表失败:', error)
+      } finally {
         this.loading = false
-      }, 1000)
+      }
     },
 
     // 搜索
@@ -229,69 +195,95 @@ export default {
     },
 
     // 单产品上架
-    handlePublish(row) {
-      this.$confirm('确定要上架该产品吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        // 模拟API调用
-        setTimeout(() => {
-          row.status = 'on_sale'
-          this.$message({ type: 'success', message: '上架成功' })
-        }, 500)
-      }).catch(() => {})
+    async handlePublish(row) {
+      try {
+        await this.$confirm('确定要上架该产品吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+        
+        await publishProduct(row.id)
+        row.status = 'on_sale'
+        this.$message({ type: 'success', message: '上架成功' })
+      } catch (error) {
+        // 如果是用户取消，不显示错误信息
+        if (error !== 'cancel') {
+          this.$message.error('上架失败: ' + (error.message || '未知错误'))
+        }
+      }
     },
 
     // 单产品下架
-    handleUnpublish(row) {
-      this.$confirm('确定要下架该产品吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        // 模拟API调用
-        setTimeout(() => {
-          row.status = 'off_sale'
-          this.$message({ type: 'success', message: '下架成功' })
-        }, 500)
-      }).catch(() => {})
+    async handleUnpublish(row) {
+      try {
+        await this.$confirm('确定要下架该产品吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+        
+        await unpublishProduct(row.id)
+        row.status = 'off_sale'
+        this.$message({ type: 'success', message: '下架成功' })
+      } catch (error) {
+        // 如果是用户取消，不显示错误信息
+        if (error !== 'cancel') {
+          this.$message.error('下架失败: ' + (error.message || '未知错误'))
+        }
+      }
     },
 
     // 批量上架
-    batchPublish() {
-      this.$confirm(`确定要上架选中的${this.selectedProducts.length}个产品吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        // 模拟API调用
-        setTimeout(() => {
-          this.selectedProducts.forEach(item => {
-            item.status = 'on_sale'
-          })
-          this.$message({ type: 'success', message: '批量上架成功' })
-          this.clearSelection()
-        }, 500)
-      }).catch(() => {})
+    async batchPublish() {
+      try {
+        await this.$confirm(`确定要上架选中的${this.selectedProducts.length}个产品吗？`, '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+        
+        const ids = this.selectedProducts.map(item => item.id)
+        await batchPublishProducts(ids)
+        
+        this.selectedProducts.forEach(item => {
+          item.status = 'on_sale'
+        })
+        
+        this.$message({ type: 'success', message: '批量上架成功' })
+        this.clearSelection()
+      } catch (error) {
+        // 如果是用户取消，不显示错误信息
+        if (error !== 'cancel') {
+          this.$message.error('批量上架失败: ' + (error.message || '未知错误'))
+        }
+      }
     },
 
     // 批量下架
-    batchUnpublish() {
-      this.$confirm(`确定要下架选中的${this.selectedProducts.length}个产品吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        // 模拟API调用
-        setTimeout(() => {
-          this.selectedProducts.forEach(item => {
-            item.status = 'off_sale'
-          })
-          this.$message({ type: 'success', message: '批量下架成功' })
-          this.clearSelection()
-        }, 500)
-      }).catch(() => {})
+    async batchUnpublish() {
+      try {
+        await this.$confirm(`确定要下架选中的${this.selectedProducts.length}个产品吗？`, '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+        
+        const ids = this.selectedProducts.map(item => item.id)
+        await batchUnpublishProducts(ids)
+        
+        this.selectedProducts.forEach(item => {
+          item.status = 'off_sale'
+        })
+        
+        this.$message({ type: 'success', message: '批量下架成功' })
+        this.clearSelection()
+      } catch (error) {
+        // 如果是用户取消，不显示错误信息
+        if (error !== 'cancel') {
+          this.$message.error('批量下架失败: ' + (error.message || '未知错误'))
+        }
+      }
     },
 
     // 查看产品详情

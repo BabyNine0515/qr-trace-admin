@@ -1,115 +1,148 @@
 // 溯源码管理相关API
+import request from '@/utils/request'
 
-// 由于没有后端，这里提供模拟的API函数，实际使用时会被替换为真实的后端API调用
+// 由于没有真实后端，这里提供基于request的API函数，实际使用时会连接到真实的后端API
 
-export const getTraceabilityList = () => {
-  return new Promise((resolve) => {
-    // 模拟从后端获取数据
-    setTimeout(() => {
-      const data = JSON.parse(localStorage.getItem('traceabilityCodes') || '[]')
-      resolve({
-        code: 200,
-        data: data,
-        total: data.length
-      })
-    }, 300)
+// 获取溯源码列表
+export const getTraceabilityList = (params) => {
+  return request({
+    url: '/traceability/list',
+    method: 'get',
+    params
   })
 }
 
+// 获取溯源码二维码列表
+export const getQRCodeList = (params) => {
+  return request({
+    url: '/traceability/qrcode/list',
+    method: 'get',
+    params
+  })
+}
+
+// 创建溯源码
 export const createTraceability = (data) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const codes = JSON.parse(localStorage.getItem('traceabilityCodes') || '[]')
-      const newCode = {
-        ...data,
-        id: Date.now().toString(),
-        createdAt: new Date().toLocaleString('zh-CN')
-      }
-      codes.push(newCode)
-      localStorage.setItem('traceabilityCodes', JSON.stringify(codes))
-      resolve({
-        code: 200,
-        data: newCode,
-        message: '创建成功'
-      })
-    }, 300)
+  return request({
+    url: '/traceability/create',
+    method: 'post',
+    data
   })
 }
 
+// 生成溯源码二维码
+export const generateQRCode = (data) => {
+  return request({
+    url: '/traceability/qrcode/generate',
+    method: 'post',
+    data
+  })
+}
+
+// 更新溯源码
 export const updateTraceability = (id, data) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const codes = JSON.parse(localStorage.getItem('traceabilityCodes') || '[]')
-      const index = codes.findIndex(item => item.id === id)
-      if (index !== -1) {
-        codes[index] = { ...codes[index], ...data }
-        localStorage.setItem('traceabilityCodes', JSON.stringify(codes))
-        resolve({
-          code: 200,
-          data: codes[index],
-          message: '更新成功'
-        })
-      } else {
-        resolve({
-          code: 404,
-          message: '未找到该溯源码'
-        })
-      }
-    }, 300)
+  return request({
+    url: `/traceability/update/${id}`,
+    method: 'put',
+    data
   })
 }
 
+// 删除溯源码
 export const deleteTraceability = (id) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const codes = JSON.parse(localStorage.getItem('traceabilityCodes') || '[]')
-      const newCodes = codes.filter(item => item.id !== id)
-      localStorage.setItem('traceabilityCodes', JSON.stringify(newCodes))
-      resolve({
-        code: 200,
-        message: '删除成功'
-      })
-    }, 300)
+  return request({
+    url: `/traceability/delete/${id}`,
+    method: 'delete'
   })
 }
 
+// 删除溯源码二维码
+export const deleteQRCode = (id) => {
+  return request({
+    url: `/traceability/qrcode/delete/${id}`,
+    method: 'delete'
+  })
+}
+
+// 验证溯源码
 export const verifyTraceability = (code) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const codes = JSON.parse(localStorage.getItem('traceabilityCodes') || '[]')
-      const item = codes.find(item => item.code.toUpperCase() === code.toUpperCase())
-
-      if (item) {
-        if (item.status) {
-          resolve({
-            code: 200,
-            status: 'success',
-            data: item,
-            message: '溯源码有效'
-          })
-        } else {
-          resolve({
-            code: 400,
-            status: 'error',
-            message: '溯源码已失效'
-          })
-        }
-      } else {
-        resolve({
-          code: 404,
-          status: 'error',
-          message: '未找到该溯源码'
-        })
-      }
-    }, 300)
+  return request({
+    url: '/traceability/verify',
+    method: 'get',
+    params: { code }
   })
 }
 
-export const generateTraceabilityCode = () => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-  let code = ''
-  for (let i = 0; i < 16; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return code.toUpperCase()
+// 批量生成溯源码
+export const batchGenerateTraceabilityCodes = (count) => {
+  return request({
+    url: '/traceability/batch-generate',
+    method: 'post',
+    data: { count }
+  })
+}
+
+
+
+// 上传图片
+export const uploadImage = (file) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request({
+    url: '/traceability/upload/image',
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+// 上传视频
+export const uploadVideo = (file) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request({
+    url: '/traceability/upload/video',
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+// 上传证书/报告
+export const uploadCertificate = (file) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request({
+    url: '/traceability/upload/certificate',
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+// 导入溯源码
+export const importTraceabilityCodes = (formData) => {
+  return request({
+    url: '/traceability/import',
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+// 保存验证历史
+export const saveVerifyHistory = (data) => {
+  return request({
+    url: '/traceability/verify/history',
+    method: 'post',
+    data
+  })
 }

@@ -360,10 +360,12 @@
 </template>
 
 <script>
+import { getCommentList, getProductList, approveComment, rejectComment, deleteCommentApi, batchApproveComments, batchRejectComments, replyComment } from '@/api/comment'
+
 export default {
   name: 'CommentApproval',
   data() {
-    return {
+      return {
       // 评论列表
       commentList: [],
       // 产品列表（用于关联选择）
@@ -485,325 +487,41 @@ export default {
     // 获取评论列表
     fetchCommentList() {
       this.loading = true
-      // 模拟API请求
-      setTimeout(() => {
-        this.commentList = [
-          {
-            id: '1001',
-            userId: 'u001',
-            userInfo: {
-              userId: 'u001',
-              nickname: '用户小明',
-              avatar: 'https://via.placeholder.com/100?text=User1'
-            },
-            productId: '101',
-            productName: '香泰优质大米',
-            productBatch: 'XT20230601',
-            productImage: 'https://via.placeholder.com/200x200?text=香泰优质大米',
-            content: '这款大米真的很香，煮出来的米饭软糯可口，全家人都很喜欢！\n物流也很快，包装完好无损，以后会继续购买。',
-            rating: 5,
-            images: [
-              { id: 'img1', url: 'https://via.placeholder.com/800x600?text=Rice+1' },
-              { id: 'img2', url: 'https://via.placeholder.com/800x600?text=Rice+2' }
-            ],
-            status: 'pending',
-            likes: 0,
-            replies: [
-              {
-                id: 'r1',
-                content: '感谢您的好评，我们会继续努力提供更好的产品和服务！',
-                author: '管理员A',
-                time: '2023-06-15 11:00:00',
-                type: 'public'
-              }
-            ],
-            ipAddress: '192.168.1.1',
-            createdTime: '2023-06-15 10:30:00',
-            updatedTime: '2023-06-15 10:30:00',
-            operationLogs: [
-              {
-                time: '2023-06-15 10:30:00',
-                action: '评论发布',
-                operator: '系统'
-              }
-            ]
-          },
-          {
-            id: '1002',
-            userId: 'u002',
-            userInfo: {
-              userId: 'u002',
-              nickname: '美食达人',
-              avatar: 'https://via.placeholder.com/100?text=User2'
-            },
-            productId: '103',
-            productName: '香泰有机大米',
-            productBatch: 'XT20230610',
-            productImage: 'https://via.placeholder.com/200x200?text=香泰有机大米',
-            content: '作为一个注重健康的消费者，这款有机大米确实不错。口感自然，有米香，煮出来的米饭很有嚼劲。虽然价格稍贵，但值得购买。',
-            rating: 4.5,
-            images: [
-              { id: 'img3', url: 'https://via.placeholder.com/800x600?text=Organic+Rice' }
-            ],
-            status: 'pending',
-            likes: 0,
-            replies: [],
-            ipAddress: '192.168.1.2',
-            createdTime: '2023-06-18 14:20:00',
-            updatedTime: '2023-06-18 14:20:00',
-            operationLogs: [
-              {
-                time: '2023-06-18 14:20:00',
-                action: '评论发布',
-                operator: '系统'
-              }
-            ]
-          },
-          {
-            id: '1003',
-            userId: 'u003',
-            userInfo: {
-              userId: 'u003',
-              nickname: '普通消费者',
-              avatar: 'https://via.placeholder.com/100?text=User3'
-            },
-            productId: '104',
-            productName: '香泰红米',
-            productBatch: 'XT20230615',
-            productImage: 'https://via.placeholder.com/200x200?text=香泰红米',
-            content: '红米颜色很好看，但是口感一般，可能不太适合我家的口味。不过听说红米营养价值高，还是会偶尔购买。',
-            rating: 3,
-            images: [],
-            status: 'approved',
-            likes: 5,
-            replies: [
-              {
-                id: 'r2',
-                content: '感谢您的反馈，我们会继续改进产品品质。',
-                author: '管理员B',
-                time: '2023-06-20 11:00:00',
-                type: 'public'
-              }
-            ],
-            ipAddress: '192.168.1.3',
-            createdTime: '2023-06-20 09:45:00',
-            updatedTime: '2023-06-20 11:00:00',
-            operationLogs: [
-              {
-                time: '2023-06-20 09:45:00',
-                action: '评论发布',
-                operator: '系统'
-              },
-              {
-                time: '2023-06-20 10:00:00',
-                action: '审核通过',
-                operator: '管理员C'
-              },
-              {
-                time: '2023-06-20 11:00:00',
-                action: '回复评论',
-                operator: '管理员B'
-              }
-            ]
-          },
-          {
-            id: '1004',
-            userId: 'u004',
-            userInfo: {
-              userId: 'u004',
-              nickname: '第一次购买',
-              avatar: 'https://via.placeholder.com/100?text=User4'
-            },
-            productId: '101',
-            productName: '香泰优质大米',
-            productBatch: 'XT20230601',
-            productImage: 'https://via.placeholder.com/200x200?text=香泰优质大米',
-            content: '第一次购买这个品牌，还没开始吃，但是包装很好，物流也很快。等吃了再追评。',
-            rating: 4,
-            images: [],
-            status: 'pending',
-            likes: 0,
-            replies: [],
-            ipAddress: '192.168.1.4',
-            createdTime: '2023-06-22 16:30:00',
-            updatedTime: '2023-06-22 16:30:00',
-            operationLogs: [
-              {
-                time: '2023-06-22 16:30:00',
-                action: '评论发布',
-                operator: '系统'
-              }
-            ]
-          },
-          {
-            id: '1005',
-            userId: 'u005',
-            userInfo: {
-              userId: 'u005',
-              nickname: '不满意的顾客',
-              avatar: 'https://via.placeholder.com/100?text=User5'
-            },
-            productId: '105',
-            productName: '香泰糙米',
-            productBatch: 'XT20230620',
-            productImage: 'https://via.placeholder.com/200x200?text=香泰糙米',
-            content: '这个糙米感觉不太新鲜，煮了很久还是有点硬，而且有股怪味。不会再购买了！',
-            rating: 1,
-            images: [
-              { id: 'img4', url: 'https://via.placeholder.com/800x600?text=Brown+Rice+1' },
-              { id: 'img5', url: 'https://via.placeholder.com/800x600?text=Brown+Rice+2' }
-            ],
-            status: 'pending',
-            likes: 0,
-            replies: [],
-            ipAddress: '192.168.1.5',
-            createdTime: '2023-06-25 11:00:00',
-            updatedTime: '2023-06-25 11:00:00',
-            operationLogs: [
-              {
-                time: '2023-06-25 11:00:00',
-                action: '评论发布',
-                operator: '系统'
-              }
-            ]
-          },
-          {
-            id: '1006',
-            userId: 'u006',
-            userInfo: {
-              userId: 'u006',
-              nickname: '回头客',
-              avatar: 'https://via.placeholder.com/100?text=User6'
-            },
-            productId: '102',
-            productName: '香泰生态米',
-            productBatch: 'XT20230520',
-            productImage: 'https://via.placeholder.com/200x200?text=香泰生态米',
-            content: '一直在买这款生态米，质量稳定，口感好，煮出来的米饭很香。这次还送了小包装的试吃装，很贴心。',
-            rating: 5,
-            images: [
-              { id: 'img6', url: 'https://via.placeholder.com/800x600?text=Eco+Rice' },
-              { id: 'img7', url: 'https://via.placeholder.com/800x600?text=Gift' }
-            ],
-            status: 'approved',
-            likes: 18,
-            replies: [
-              {
-                id: 'r3',
-                content: '非常感谢您的支持和好评，期待您的下次购买！',
-                author: '管理员A',
-                time: '2023-06-28 16:00:00',
-                type: 'public'
-              },
-              {
-                id: 'r4',
-                content: '感谢您的反馈，我们会继续保持产品品质。',
-                author: '管理员C',
-                time: '2023-06-28 16:15:00',
-                type: 'private'
-              }
-            ],
-            ipAddress: '192.168.1.6',
-            createdTime: '2023-06-28 15:20:00',
-            updatedTime: '2023-06-28 16:15:00',
-            operationLogs: [
-              {
-                time: '2023-06-28 15:20:00',
-                action: '评论发布',
-                operator: '系统'
-              },
-              {
-                time: '2023-06-28 15:30:00',
-                action: '审核通过',
-                operator: '管理员B'
-              },
-              {
-                time: '2023-06-28 16:00:00',
-                action: '公开回复',
-                operator: '管理员A'
-              },
-              {
-                time: '2023-06-28 16:15:00',
-                action: '私信回复',
-                operator: '管理员C'
-              }
-            ]
-          },
-          {
-            id: '1007',
-            userId: 'u007',
-            userInfo: {
-              userId: 'u007',
-              nickname: '新用户',
-              avatar: 'https://via.placeholder.com/100?text=User7'
-            },
-            productId: '103',
-            productName: '香泰有机大米',
-            productBatch: 'XT20230610',
-            productImage: 'https://via.placeholder.com/200x200?text=香泰有机大米',
-            content: '看了评价买的，收到后还没吃，期待口感。',
-            rating: 3,
-            images: [],
-            status: 'pending',
-            likes: 0,
-            replies: [],
-            ipAddress: '192.168.1.7',
-            createdTime: '2023-06-30 09:10:00',
-            updatedTime: '2023-06-30 09:10:00',
-            operationLogs: [
-              {
-                time: '2023-06-30 09:10:00',
-                action: '评论发布',
-                operator: '系统'
-              }
-            ]
-          },
-          {
-            id: '1008',
-            userId: 'u008',
-            userInfo: {
-              userId: 'u008',
-              nickname: '有意见',
-              avatar: 'https://via.placeholder.com/100?text=User8'
-            },
-            productId: '104',
-            productName: '香泰红米',
-            productBatch: 'XT20230615',
-            productImage: 'https://via.placeholder.com/200x200?text=香泰红米',
-            content: '很差的产品，和描述不符，强烈不推荐购买！！！',
-            rating: 1,
-            images: [],
-            status: 'pending',
-            likes: 0,
-            replies: [],
-            ipAddress: '192.168.1.8',
-            createdTime: '2023-07-01 14:30:00',
-            updatedTime: '2023-07-01 14:30:00',
-            operationLogs: [
-              {
-                time: '2023-07-01 14:30:00',
-                action: '评论发布',
-                operator: '系统'
-              }
-            ]
-          }
-        ]
-        this.loading = false
-      }, 1000)
+      // 构建查询参数
+      const params = {
+        page: this.currentPage,
+        pageSize: this.pageSize,
+        content: this.searchParams.content,
+        productId: this.searchParams.productId,
+        status: this.searchParams.status,
+        startDate: this.searchParams.startDate,
+        endDate: this.searchParams.endDate
+      }
+      
+      getCommentList(params)
+        .then(res => {
+          this.commentList = res.data.list || []
+          this.total = res.data.total || 0
+        })
+        .catch(err => {
+          this.$message.error('获取评论列表失败')
+          console.error('获取评论列表错误:', err)
+        })
+        .finally(() => {
+          this.loading = false
+        })
     },
 
     // 获取产品列表
     fetchProductList() {
-      // 模拟API请求
-      setTimeout(() => {
-        this.productList = [
-          { id: '101', name: '香泰优质大米' },
-          { id: '102', name: '香泰生态米' },
-          { id: '103', name: '香泰有机大米' },
-          { id: '104', name: '香泰红米' },
-          { id: '105', name: '香泰糙米' }
-        ]
-      }, 500)
+      getProductList()
+        .then(res => {
+          this.productList = res.data || []
+        })
+        .catch(err => {
+          this.$message.error('获取产品列表失败')
+          console.error('获取产品列表错误:', err)
+        })
     },
 
     // 搜索
@@ -910,37 +628,26 @@ export default {
       this.$refs['replyForm'].validate((valid) => {
         if (valid) {
           this.loading = true
-          // 模拟提交回复
-          setTimeout(() => {
-            const newReply = {
-              id: `r${Date.now()}`,
-              content: this.replyForm.replyContent,
-              author: '当前管理员',
-              time: new Date().toLocaleString('zh-CN'),
-              type: this.replyForm.replyType
-            }
-
-            // 更新评论列表中的回复
-            const comment = this.commentList.find(item => item.id === this.replyTargetComment.id)
-            if (comment) {
-              if (!comment.replies) comment.replies = []
-              comment.replies.push(newReply)
-
-              // 添加操作日志
-              if (!comment.operationLogs) comment.operationLogs = []
-              comment.operationLogs.push({
-                time: new Date().toLocaleString('zh-CN'),
-                action: this.replyForm.replyType === 'public' ? '公开回复' : '私信回复',
-                operator: '当前管理员'
-              })
-
-              comment.updatedTime = new Date().toLocaleString('zh-CN')
-            }
-
-            this.$message.success('回复成功')
-            this.replyDialogVisible = false
-            this.loading = false
-          }, 500)
+          const params = {
+            commentId: this.replyTargetComment.id,
+            content: this.replyForm.replyContent,
+            type: this.replyForm.replyType
+          }
+          
+          replyComment(params)
+            .then(() => {
+              this.$message.success('回复成功')
+              this.replyDialogVisible = false
+              // 刷新评论列表
+              this.fetchCommentList()
+            })
+            .catch(err => {
+              this.$message.error('回复失败')
+              console.error('回复评论错误:', err)
+            })
+            .finally(() => {
+              this.loading = false
+            })
         }
       })
     },
@@ -953,33 +660,27 @@ export default {
         type: 'info'
       }).then(() => {
         this.loading = true
-        // 模拟审核操作
-        setTimeout(() => {
-          const comment = this.commentList.find(item => item.id === id)
-          if (comment) {
-            comment.status = 'approved'
-            comment.updatedTime = new Date().toLocaleString('zh-CN')
+        approveComment(id)
+          .then(() => {
+            // 如果从详情页操作，关闭详情页
+            if (fromDetail) {
+              this.detailDialogVisible = false
+            }
 
-            // 添加操作日志
-            if (!comment.operationLogs) comment.operationLogs = []
-            comment.operationLogs.push({
-              time: new Date().toLocaleString('zh-CN'),
-              action: '审核通过',
-              operator: '当前管理员'
-            })
-          }
+            // 从选中列表中移除
+            this.selectedRows = this.selectedRows.filter(item => item.id !== id)
 
-          // 如果从详情页操作，关闭详情页
-          if (fromDetail) {
-            this.detailDialogVisible = false
-          }
-
-          // 从选中列表中移除
-          this.selectedRows = this.selectedRows.filter(item => item.id !== id)
-
-          this.$message.success('审核通过')
-          this.loading = false
-        }, 500)
+            this.$message.success('审核通过')
+            // 刷新评论列表
+            this.fetchCommentList()
+          })
+          .catch(err => {
+            this.$message.error('审核失败')
+            console.error('审核通过评论错误:', err)
+          })
+          .finally(() => {
+            this.loading = false
+          })
       })
     },
 
@@ -1002,35 +703,33 @@ export default {
       this.$refs['rejectReasonForm'].validate((valid) => {
         if (valid) {
           this.loading = true
-          // 模拟拒绝操作
-          setTimeout(() => {
-            const comment = this.commentList.find(item => item.id === this.rejectTargetId)
-            if (comment) {
-              comment.status = 'rejected'
-              comment.updatedTime = new Date().toLocaleString('zh-CN')
+          const params = {
+            id: this.rejectTargetId,
+            reason: this.rejectReasonForm.reason || '未提供理由'
+          }
+          
+          rejectComment(params)
+            .then(() => {
+              // 如果从详情页操作，关闭详情页
+              if (this.rejectTargetFromDetail) {
+                this.detailDialogVisible = false
+              }
 
-              // 添加操作日志
-              if (!comment.operationLogs) comment.operationLogs = []
-              comment.operationLogs.push({
-                time: new Date().toLocaleString('zh-CN'),
-                action: '审核拒绝',
-                operator: '当前管理员',
-                reason: this.rejectReasonForm.reason || '未提供理由'
-              })
-            }
+              // 从选中列表中移除
+              this.selectedRows = this.selectedRows.filter(item => item.id !== this.rejectTargetId)
 
-            // 如果从详情页操作，关闭详情页
-            if (this.rejectTargetFromDetail) {
-              this.detailDialogVisible = false
-            }
-
-            // 从选中列表中移除
-            this.selectedRows = this.selectedRows.filter(item => item.id !== this.rejectTargetId)
-
-            this.$message.success('审核拒绝')
-            this.rejectReasonDialogVisible = false
-            this.loading = false
-          }, 500)
+              this.$message.success('审核拒绝')
+              this.rejectReasonDialogVisible = false
+              // 刷新评论列表
+              this.fetchCommentList()
+            })
+            .catch(err => {
+              this.$message.error('拒绝失败')
+              console.error('拒绝评论错误:', err)
+            })
+            .finally(() => {
+              this.loading = false
+            })
         }
       })
     },
@@ -1043,20 +742,27 @@ export default {
         type: 'warning'
       }).then(() => {
         this.loading = true
-        // 模拟删除操作
-        setTimeout(() => {
-          this.commentList = this.commentList.filter(item => item.id !== id)
-          // 从选中列表中移除
-          this.selectedRows = this.selectedRows.filter(item => item.id !== id)
+        deleteCommentApi(id)
+          .then(() => {
+            // 从选中列表中移除
+            this.selectedRows = this.selectedRows.filter(item => item.id !== id)
 
-          // 如果正在查看的评论被删除，关闭详情页
-          if (this.detailDialogVisible && this.selectedComment && this.selectedComment.id === id) {
-            this.detailDialogVisible = false
-          }
+            // 如果正在查看的评论被删除，关闭详情页
+            if (this.detailDialogVisible && this.selectedComment && this.selectedComment.id === id) {
+              this.detailDialogVisible = false
+            }
 
-          this.$message.success('删除成功')
-          this.loading = false
-        }, 500)
+            this.$message.success('删除成功')
+            // 刷新评论列表
+            this.fetchCommentList()
+          })
+          .catch(err => {
+            this.$message.error('删除失败')
+            console.error('删除评论错误:', err)
+          })
+          .finally(() => {
+            this.loading = false
+          })
       })
     },
 
@@ -1080,30 +786,23 @@ export default {
         type: 'info'
       }).then(() => {
         this.loading = true
-        // 模拟批量通过操作
-        setTimeout(() => {
-          const idsToApprove = pendingComments.map(item => item.id)
-          this.commentList.forEach(comment => {
-            if (idsToApprove.includes(comment.id)) {
-              comment.status = 'approved'
-              comment.updatedTime = new Date().toLocaleString('zh-CN')
+        const idsToApprove = pendingComments.map(item => item.id)
+        batchApproveComments(idsToApprove)
+          .then(() => {
+            // 更新选中列表
+            this.selectedRows = this.selectedRows.filter(item => !idsToApprove.includes(item.id))
 
-              // 添加操作日志
-              if (!comment.operationLogs) comment.operationLogs = []
-              comment.operationLogs.push({
-                time: new Date().toLocaleString('zh-CN'),
-                action: '批量审核通过',
-                operator: '当前管理员'
-              })
-            }
+            this.$message.success(`成功通过 ${idsToApprove.length} 条评论`)
+            // 刷新评论列表
+            this.fetchCommentList()
           })
-
-          // 更新选中列表
-          this.selectedRows = this.selectedRows.filter(item => !idsToApprove.includes(item.id))
-
-          this.$message.success(`成功通过 ${idsToApprove.length} 条评论`)
-          this.loading = false
-        }, 500)
+          .catch(err => {
+            this.$message.error('批量通过失败')
+            console.error('批量通过评论错误:', err)
+          })
+          .finally(() => {
+            this.loading = false
+          })
       })
     },
 
@@ -1127,31 +826,23 @@ export default {
         type: 'danger'
       }).then(() => {
         this.loading = true
-        // 模拟批量拒绝操作
-        setTimeout(() => {
-          const idsToReject = pendingComments.map(item => item.id)
-          this.commentList.forEach(comment => {
-            if (idsToReject.includes(comment.id)) {
-              comment.status = 'rejected'
-              comment.updatedTime = new Date().toLocaleString('zh-CN')
+        const idsToReject = pendingComments.map(item => item.id)
+        batchRejectComments(idsToReject, { reason: '批量操作' })
+          .then(() => {
+            // 更新选中列表
+            this.selectedRows = this.selectedRows.filter(item => !idsToReject.includes(item.id))
 
-              // 添加操作日志
-              if (!comment.operationLogs) comment.operationLogs = []
-              comment.operationLogs.push({
-                time: new Date().toLocaleString('zh-CN'),
-                action: '批量审核拒绝',
-                operator: '当前管理员',
-                reason: '批量操作'
-              })
-            }
+            this.$message.success(`成功拒绝 ${idsToReject.length} 条评论`)
+            // 刷新评论列表
+            this.fetchCommentList()
           })
-
-          // 更新选中列表
-          this.selectedRows = this.selectedRows.filter(item => !idsToReject.includes(item.id))
-
-          this.$message.success(`成功拒绝 ${idsToReject.length} 条评论`)
-          this.loading = false
-        }, 500)
+          .catch(err => {
+            this.$message.error('批量拒绝失败')
+            console.error('批量拒绝评论错误:', err)
+          })
+          .finally(() => {
+            this.loading = false
+          })
       })
     }
   }

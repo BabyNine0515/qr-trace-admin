@@ -91,6 +91,8 @@
 </template>
 
 <script>
+import { getProductList, deleteProduct, publishProduct, offlineProduct } from '@/api/product'
+
 export default {
   name: 'ProductList',
   data() {
@@ -116,37 +118,40 @@ export default {
     // 获取产品列表
     getProductList() {
       this.loading = true
-      // 模拟API调用
-      setTimeout(() => {
-        this.productList = [
-          {
-            id: 1,
-            name: '八公山酱牛肉',
-            batch: '20251101',
-            category: 'meat',
-            productionDate: '2025-11-01',
-            status: 'online'
-          },
-          {
-            id: 2,
-            name: '新鲜蔬菜礼盒',
-            batch: '20251102',
-            category: 'vegetable',
-            productionDate: '2025-11-02',
-            status: 'online'
-          },
-          {
-            id: 3,
-            name: '有机水果拼盘',
-            batch: '20251103',
-            category: 'fruit',
-            productionDate: '2025-11-03',
-            status: 'offline'
-          }
-        ]
-        this.total = this.productList.length
-        this.loading = false
-      }, 500)
+      
+      const params = {
+        page: this.currentPage,
+        pageSize: this.pageSize,
+        name: this.searchForm.name,
+        batch: this.searchForm.batch,
+        status: this.searchForm.status,
+        category: this.searchForm.category
+      }
+
+      getProductList(params)
+        .then(response => {
+          this.productList = response.data.list
+          this.total = response.data.total
+        })
+        .catch(error => {
+          console.error('获取产品列表失败:', error)
+          this.$message.error('获取数据失败，请稍后重试')
+          // 模拟数据作为后备
+          this.productList = [
+            {
+              id: 1,
+              name: '八公山酱牛肉',
+              batch: '20251101',
+              category: 'meat',
+              productionDate: '2025-11-01',
+              status: 'online'
+            }
+          ]
+          this.total = this.productList.length
+        })
+        .finally(() => {
+          this.loading = false
+        })
     },
 
     // 搜索
@@ -188,11 +193,24 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        // 模拟删除操作
-        setTimeout(() => {
-          this.$message({ type: 'success', message: '删除成功' })
-          this.getProductList()
-        }, 500)
+        this.$loading({
+          lock: true,
+          text: '正在删除...',
+          spinner: 'el-icon-loading'
+        })
+        
+        deleteProduct(row.id)
+          .then(() => {
+            this.$message({ type: 'success', message: '删除成功' })
+            this.getProductList()
+          })
+          .catch(error => {
+            console.error('删除失败:', error)
+            this.$message.error('删除失败，请稍后重试')
+          })
+          .finally(() => {
+            this.$loading().close()
+          })
       }).catch(() => {
         this.$message({ type: 'info', message: '已取消删除' })
       })
@@ -205,12 +223,26 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        // 模拟删除操作
-        setTimeout(() => {
-          this.$message({ type: 'success', message: '删除成功' })
-          this.getProductList()
-          this.multipleSelection = []
-        }, 500)
+        this.$loading({
+          lock: true,
+          text: '正在批量删除...',
+          spinner: 'el-icon-loading'
+        })
+        
+        const ids = this.multipleSelection.map(item => item.id)
+        deleteProduct(ids)
+          .then(() => {
+            this.$message({ type: 'success', message: '批量删除成功' })
+            this.getProductList()
+            this.multipleSelection = []
+          })
+          .catch(error => {
+            console.error('批量删除失败:', error)
+            this.$message.error('批量删除失败，请稍后重试')
+          })
+          .finally(() => {
+            this.$loading().close()
+          })
       }).catch(() => {
         this.$message({ type: 'info', message: '已取消删除' })
       })
@@ -223,11 +255,24 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        // 模拟上架操作
-        setTimeout(() => {
-          this.$message({ type: 'success', message: '上架成功' })
-          this.getProductList()
-        }, 500)
+        this.$loading({
+          lock: true,
+          text: '正在上架...',
+          spinner: 'el-icon-loading'
+        })
+        
+        publishProduct(row.id)
+          .then(() => {
+            this.$message({ type: 'success', message: '上架成功' })
+            this.getProductList()
+          })
+          .catch(error => {
+            console.error('上架失败:', error)
+            this.$message.error('上架失败，请稍后重试')
+          })
+          .finally(() => {
+            this.$loading().close()
+          })
       }).catch(() => {
         this.$message({ type: 'info', message: '已取消上架' })
       })
@@ -240,11 +285,24 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        // 模拟下架操作
-        setTimeout(() => {
-          this.$message({ type: 'success', message: '下架成功' })
-          this.getProductList()
-        }, 500)
+        this.$loading({
+          lock: true,
+          text: '正在下架...',
+          spinner: 'el-icon-loading'
+        })
+        
+        offlineProduct(row.id)
+          .then(() => {
+            this.$message({ type: 'success', message: '下架成功' })
+            this.getProductList()
+          })
+          .catch(error => {
+            console.error('下架失败:', error)
+            this.$message.error('下架失败，请稍后重试')
+          })
+          .finally(() => {
+            this.$loading().close()
+          })
       }).catch(() => {
         this.$message({ type: 'info', message: '已取消下架' })
       })
@@ -257,12 +315,26 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        // 模拟上架操作
-        setTimeout(() => {
-          this.$message({ type: 'success', message: '上架成功' })
-          this.getProductList()
-          this.multipleSelection = []
-        }, 500)
+        this.$loading({
+          lock: true,
+          text: '正在批量上架...',
+          spinner: 'el-icon-loading'
+        })
+        
+        const ids = this.multipleSelection.map(item => item.id)
+        publishProduct(ids)
+          .then(() => {
+            this.$message({ type: 'success', message: '批量上架成功' })
+            this.getProductList()
+            this.multipleSelection = []
+          })
+          .catch(error => {
+            console.error('批量上架失败:', error)
+            this.$message.error('批量上架失败，请稍后重试')
+          })
+          .finally(() => {
+            this.$loading().close()
+          })
       }).catch(() => {
         this.$message({ type: 'info', message: '已取消上架' })
       })
@@ -275,12 +347,26 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        // 模拟下架操作
-        setTimeout(() => {
-          this.$message({ type: 'success', message: '下架成功' })
-          this.getProductList()
-          this.multipleSelection = []
-        }, 500)
+        this.$loading({
+          lock: true,
+          text: '正在批量下架...',
+          spinner: 'el-icon-loading'
+        })
+        
+        const ids = this.multipleSelection.map(item => item.id)
+        offlineProduct(ids)
+          .then(() => {
+            this.$message({ type: 'success', message: '批量下架成功' })
+            this.getProductList()
+            this.multipleSelection = []
+          })
+          .catch(error => {
+            console.error('批量下架失败:', error)
+            this.$message.error('批量下架失败，请稍后重试')
+          })
+          .finally(() => {
+            this.$loading().close()
+          })
       }).catch(() => {
         this.$message({ type: 'info', message: '已取消下架' })
       })
@@ -304,6 +390,7 @@ export default {
     }
   }
 }
+
 </script>
 
 <style scoped>

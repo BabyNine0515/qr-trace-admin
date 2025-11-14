@@ -358,6 +358,8 @@
 <script>
 // 引入Chart.js用于数据可视化
 // import Chart from 'chart.js'
+import { getTraceabilityList, createTraceability, updateTraceability, deleteTraceability, batchGenerateTraceabilityCodes, importTraceabilityCodes } from '@/api/traceability'
+
 export default {
   name: 'Traceability',
   data() {
@@ -491,7 +493,7 @@ export default {
     this.getTraceabilityList()
   },
   methods: {
-    // 生成溯源码
+    // 生成溯源码（保留作为备用）
     generateUniqueCode() {
       const timestamp = Date.now()
       const random = Math.floor(Math.random() * 1000000).toString().padStart(6, '0')
@@ -501,35 +503,56 @@ export default {
     // 获取溯源码列表
     getTraceabilityList() {
       this.loading = true
-      try {
-        const data = JSON.parse(localStorage.getItem('traceabilityCodes') || '[]')
-
-        // 搜索过滤
-        let filteredData = data
-        if (this.searchForm.code) {
-          filteredData = filteredData.filter(item => item.code.includes(this.searchForm.code.toUpperCase()))
-        }
-        if (this.searchForm.productName) {
-          filteredData = filteredData.filter(item => item.productName.includes(this.searchForm.productName))
-        }
-
-        this.total = filteredData.length
-        // 分页
-        this.traceabilityList = filteredData.slice(
-          (this.currentPage - 1) * this.pageSize,
-          this.currentPage * this.pageSize
-        )
-
-        // 更新统计数据
-        this.updateStatistics(data)
-        // 更新图表（暂时注释）
-        // this.updateCharts(data)
-      } catch (error) {
-        console.error('获取数据失败:', error)
-        this.$message.error('获取数据失败')
-      } finally {
-        this.loading = false
+      
+      const params = {
+        page: this.currentPage,
+        pageSize: this.pageSize,
+        code: this.searchForm.code,
+        productName: this.searchForm.productName,
+        brand: this.searchForm.brand,
+        category: this.searchForm.category
       }
+
+      getTraceabilityList(params)
+        .then(response => {
+          const { list, total, statistics } = response.data
+          this.traceabilityList = list
+          this.total = total
+          
+          // 更新统计数据
+          this.totalStats = {
+            totalCount: statistics.totalCount,
+            activeCount: statistics.activeCount,
+            inactiveCount: statistics.inactiveCount,
+            avgSteps: statistics.avgSteps
+          }
+        })
+        .catch(error => {
+          console.error('获取数据失败:', error)
+          this.$message.error('获取数据失败，请稍后重试')
+          
+          // 模拟数据作为后备
+          this.traceabilityList = [
+            {
+              id: 1,
+              code: 'XT20240115001',
+              productName: '有机蔬菜礼盒',
+              description: '精选有机蔬菜',
+              status: true,
+              createdAt: '2024-01-15 10:00:00'
+            }
+          ]
+          this.total = this.traceabilityList.length
+          this.totalStats = {
+            totalCount: this.total,
+            activeCount: this.traceabilityList.filter(item => item.status).length,
+            inactiveCount: this.traceabilityList.filter(item => !item.status).length,
+            avgSteps: '0.0'
+          }
+        })
+        .finally(() => {
+          this.loading = false
+        })
     },
 
     // 更新统计数据
@@ -739,7 +762,8 @@ export default {
     // 编辑
     handleEdit(row) {
       this.dialogTitle = '编辑溯源码'
-      this.form = { ...row }
+      // 深拷贝以避免直接修改原数据
+      this.form = JSON.parse(JSON.stringify(row))
       this.dialogVisible = true
     },
 
@@ -750,11 +774,27 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        const data = JSON.parse(localStorage.getItem('traceabilityCodes') || '[]')
-        const newData = data.filter(item => item.id !== row.id)
-        localStorage.setItem('traceabilityCodes', JSON.stringify(newData))
-        this.$message({ type: 'success', message: '删除成功' })
-        this.getTraceabilityList()
+        this.$loading({
+          lock: true,
+          text: '正在删除...',
+          spinner: 'el-icon-loading'
+        })
+        
+        deleteTraceability(row.id)
+          .then(() => {
+            this.$message({
+              type: 'success',
+              message: '删除成功'
+            })
+            this.getTraceabilityList()
+          })
+          .catch(error => {
+            console.error('删除失败:', error)
+            this.$message.error('删除失败，请稍后重试')
+          })
+          .finally(() => {
+            this.$loading().close()
+          })
       })
     },
 
@@ -775,13 +815,26 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        const data = JSON.parse(localStorage.getItem('traceabilityCodes') || '[]')
-        const ids = this.multipleSelection.map(item => item.id)
-        const newData = data.filter(item => !ids.includes(item.id))
-        localStorage.setItem('traceabilityCodes', JSON.stringify(newData))
-        this.$message.success(`成功删除 ${this.multipleSelection.length} 个溯源码`)
-        this.getTraceabilityList()
-        this.multipleSelection = []
+        this.$loading({
+          lock: true,
+          text: '正在批量删除...',
+          spinner: 'el-icon-loading'
+        })
+        
+        // 批量删除 - 这里为简化，实际项目中应该有批量删除的API
+        Promise.all(this.multipleSelection.map(item => deleteTraceability(item.id)))
+          .then(() => {
+            this.$message.success(`成功删除 ${this.multipleSelection.length} 个溯源码`)
+            this.getTraceabilityList()
+            this.multipleSelection = []
+          })
+          .catch(error => {
+            console.error('批量删除失败:', error)
+            this.$message.error('批量删除失败，请稍后重试')
+          })
+          .finally(() => {
+            this.$loading().close()
+          })
       })
     },
 
@@ -805,34 +858,38 @@ export default {
     executeBatchGenerate() {
       this.$refs.batchForm.validate((valid) => {
         if (valid) {
-          const data = JSON.parse(localStorage.getItem('traceabilityCodes') || '[]')
           const count = this.batchForm.count
-          const newItems = []
-
-          for (let i = 0; i < count; i++) {
-            const newItem = {
-              ...this.batchForm,
-              id: Date.now().toString() + i,
-              code: this.generateUniqueCode(),
-              status: true,
-              createdAt: new Date().toLocaleString('zh-CN'),
-              processSteps: []
-            }
-            newItems.push(newItem)
-          }
-
-          data.push(...newItems)
-          localStorage.setItem('traceabilityCodes', JSON.stringify(data))
-          this.$message({ type: 'success', message: `成功生成 ${count} 个溯源码` })
-          this.batchGenerateVisible = false
-          this.getList()
+          
+          this.$loading({
+            lock: true,
+            text: `正在批量生成${count}个溯源码...`,
+            spinner: 'el-icon-loading'
+          })
+          
+          batchGenerateTraceabilityCodes(this.batchForm)
+            .then(() => {
+              this.$message({
+                type: 'success',
+                message: `成功生成${count}个溯源码`
+              })
+              
+              this.batchGenerateVisible = false
+              this.getTraceabilityList()
+            })
+            .catch(error => {
+              console.error('批量生成失败:', error)
+              this.$message.error('批量生成失败，请稍后重试')
+            })
+            .finally(() => {
+              this.$loading().close()
+            })
         }
       })
     },
 
     // 导出数据
     handleExport() {
-      const data = JSON.parse(localStorage.getItem('traceabilityCodes') || '[]')
+      const data = this.traceabilityList
 
       if (data.length === 0) {
         this.$message.warning('没有数据可导出')
@@ -904,21 +961,21 @@ export default {
     importFile(file) {
       this.importLoading = true
 
-      // 模拟导入过程
-      setTimeout(() => {
-        try {
-          // 在实际项目中，这里应该使用FileReader和CSV解析库
-          // 这里简化处理，仅做演示
+      const formData = new FormData()
+      formData.append('file', file)
 
-          this.$message.success(`文件 ${file.name} 导入成功（模拟）`)
-          this.getList()
-        } catch (error) {
-          this.$message.error('导入失败，请检查文件格式')
+      importTraceabilityCodes(formData)
+        .then(() => {
+          this.$message.success(`文件 ${file.name} 导入成功`)
+          this.getTraceabilityList()
+        })
+        .catch(error => {
           console.error('导入错误:', error)
-        } finally {
+          this.$message.error('导入失败，请检查文件格式和网络连接')
+        })
+        .finally(() => {
           this.importLoading = false
-        }
-      }, 1000)
+        })
     },
 
     // 复制溯源码
@@ -934,36 +991,82 @@ export default {
 
     // 图片上传处理
     handleImageChange(file, fileList) {
-      // 在实际应用中，这里应该调用上传接口
-      // 这里模拟上传成功，返回一个临时URL
-      const reader = new FileReader()
-      reader.readAsDataURL(file.raw)
-      reader.onload = (e) => {
-        // 保存图片信息到表单中
-        const index = fileList.findIndex(f => f.uid === file.uid)
-        if (index !== -1) {
-          fileList[index].url = e.target.result
-        }
-        // 更新表单中的图片列表
-        this.form.images = fileList.map(f => ({
-          name: f.name,
-          url: f.url || '',
-          size: f.size,
-          type: f.type
-        }))
-      }
+      this.$loading({ text: '正在上传图片...' })
+      
+      uploadImage(file.raw)
+        .then(response => {
+          // 保存服务器返回的URL到文件对象
+          const index = fileList.findIndex(f => f.uid === file.uid)
+          if (index !== -1) {
+            fileList[index].url = response.data.url
+          }
+          // 更新表单中的图片列表
+          this.form.images = fileList.map(f => ({
+            name: f.name,
+            url: f.url || '',
+            size: f.size,
+            type: f.type
+          }))
+        })
+        .catch(error => {
+          console.error('图片上传失败:', error)
+          this.$message.error('图片上传失败，请重试')
+          // 如果上传失败，仍然使用本地预览作为备用
+          const reader = new FileReader()
+          reader.readAsDataURL(file.raw)
+          reader.onload = (e) => {
+            const index = fileList.findIndex(f => f.uid === file.uid)
+            if (index !== -1) {
+              fileList[index].url = e.target.result
+            }
+            this.form.images = fileList.map(f => ({
+              name: f.name,
+              url: f.url || '',
+              size: f.size,
+              type: f.type
+            }))
+          }
+        })
+        .finally(() => {
+          this.$loading().close()
+        })
     },
 
     // 视频上传处理
     handleVideoChange(file, fileList) {
-      // 在实际应用中，这里应该调用上传接口
-      // 这里模拟上传成功，保存文件信息
-      this.form.videos = fileList.map(f => ({
-        name: f.name,
-        size: f.size,
-        type: f.type,
-        raw: f.raw // 在实际应用中，这里应该保存服务器返回的URL
-      }))
+      this.$loading({ text: '正在上传视频...' })
+      
+      uploadVideo(file.raw)
+        .then(response => {
+          // 更新视频列表，使用服务器返回的URL
+          this.form.videos = fileList.map(f => {
+            const uploadedFile = f.uid === file.uid ? {
+              name: f.name,
+              size: f.size,
+              type: f.type,
+              url: response.data.url
+            } : {
+              name: f.name,
+              size: f.size,
+              type: f.type,
+              url: f.url
+            }
+            return uploadedFile
+          })
+        })
+        .catch(error => {
+          console.error('视频上传失败:', error)
+          this.$message.error('视频上传失败，请重试')
+          // 失败时保存基本信息，不包含URL
+          this.form.videos = fileList.map(f => ({
+            name: f.name,
+            size: f.size,
+            type: f.type
+          }))
+        })
+        .finally(() => {
+          this.$loading().close()
+        })
     },
 
     // 图片预览
@@ -979,15 +1082,42 @@ export default {
 
     // 验证报告上传处理
     handleCertificateChange(file, fileList) {
-      // 在实际应用中，这里应该调用上传接口
-      // 这里模拟上传成功，保存文件信息
-      this.form.certificates = fileList.map(f => ({
-        name: f.name,
-        size: f.size,
-        type: f.type,
-        raw: f.raw, // 在实际应用中，这里应该保存服务器返回的URL
-        uploadTime: new Date().toLocaleString()
-      }))
+      this.$loading({ text: '正在上传验证报告...' })
+      
+      uploadCertificate(file.raw)
+        .then(response => {
+          // 更新证书列表，使用服务器返回的URL
+          this.form.certificates = fileList.map(f => {
+            const uploadedFile = f.uid === file.uid ? {
+              name: f.name,
+              size: f.size,
+              type: f.type,
+              url: response.data.url,
+              uploadTime: new Date().toLocaleString()
+            } : {
+              name: f.name,
+              size: f.size,
+              type: f.type,
+              url: f.url,
+              uploadTime: f.uploadTime || new Date().toLocaleString()
+            }
+            return uploadedFile
+          })
+        })
+        .catch(error => {
+          console.error('验证报告上传失败:', error)
+          this.$message.error('验证报告上传失败，请重试')
+          // 失败时保存基本信息
+          this.form.certificates = fileList.map(f => ({
+            name: f.name,
+            size: f.size,
+            type: f.type,
+            uploadTime: new Date().toLocaleString()
+          }))
+        })
+        .finally(() => {
+          this.$loading().close()
+        })
     },
 
     // 下载验证报告
@@ -1007,26 +1137,50 @@ export default {
 
     // 征兆图片上传处理
     handleSymptomImageChange(file, fileList) {
-      // 在实际应用中，这里应该调用上传接口
-      // 这里模拟上传成功，返回一个临时URL
-      const reader = new FileReader()
-      reader.readAsDataURL(file.raw)
-      reader.onload = (e) => {
-        // 保存图片信息到表单中
-        const index = fileList.findIndex(f => f.uid === file.uid)
-        if (index !== -1) {
-          fileList[index].url = e.target.result
-        }
-        // 更新表单中的征兆图片列表
-        this.form.symptomImages = fileList.map(f => ({
-          name: f.name,
-          url: f.url || '',
-          size: f.size,
-          type: f.type,
-          uploadTime: new Date().toLocaleString(),
-          description: '' // 可以添加图片描述
-        }))
-      }
+      this.$loading({ text: '正在上传征兆图片...' })
+      
+      uploadImage(file.raw)
+        .then(response => {
+          // 更新征兆图片列表，使用服务器返回的URL
+          this.form.symptomImages = fileList.map(f => {
+            const uploadedFile = f.uid === file.uid ? {
+              name: f.name,
+              size: f.size,
+              type: f.type,
+              url: response.data.url,
+              uploadTime: new Date().toLocaleString(),
+              description: ''
+            } : {
+              name: f.name,
+              size: f.size,
+              type: f.type,
+              url: f.url,
+              uploadTime: f.uploadTime || new Date().toLocaleString(),
+              description: f.description || ''
+            }
+            return uploadedFile
+          })
+        })
+        .catch(error => {
+          console.error('征兆图片上传失败:', error)
+          this.$message.error('征兆图片上传失败，请重试')
+          // 失败时使用本地预览作为备用
+          const reader = new FileReader()
+          reader.readAsDataURL(file.raw)
+          reader.onload = (e) => {
+            this.form.symptomImages = fileList.map(f => ({
+              name: f.name,
+              size: f.size,
+              type: f.type,
+              url: f.uid === file.uid ? e.target.result : (f.url || ''),
+              uploadTime: new Date().toLocaleString(),
+              description: f.description || ''
+            }))
+          }
+        })
+        .finally(() => {
+          this.$loading().close()
+        })
     },
 
     // 征兆图片预览
@@ -1122,26 +1276,49 @@ export default {
             }))
           }
 
-          const data = JSON.parse(localStorage.getItem('traceabilityCodes') || '[]')
+          this.$loading({
+            lock: true,
+            text: '正在保存...',
+            spinner: 'el-icon-loading'
+          })
+          
           if (this.form.id) {
             // 编辑
-            const index = data.findIndex(item => item.id === this.form.id)
-            if (index !== -1) {
-              data[index] = formData
-            }
+            updateTraceability(this.form.id, formData)
+              .then(() => {
+                this.$message({
+                  type: 'success',
+                  message: '更新成功'
+                })
+                this.dialogVisible = false
+                this.getTraceabilityList()
+              })
+              .catch(error => {
+                console.error('更新失败:', error)
+                this.$message.error('更新失败，请稍后重试')
+              })
+              .finally(() => {
+                this.$loading().close()
+              })
           } else {
             // 新增
-            const newItem = {
-              ...formData,
-              id: Date.now().toString(),
-              createdAt: new Date().toLocaleString('zh-CN')
-            }
-            data.push(newItem)
+            createTraceability(formData)
+              .then(() => {
+                this.$message({
+                  type: 'success',
+                  message: '新增成功'
+                })
+                this.dialogVisible = false
+                this.getTraceabilityList()
+              })
+              .catch(error => {
+                console.error('新增失败:', error)
+                this.$message.error('新增失败，请稍后重试')
+              })
+              .finally(() => {
+                this.$loading().close()
+              })
           }
-          localStorage.setItem('traceabilityCodes', JSON.stringify(data))
-          this.$message({ type: 'success', message: this.form.id ? '编辑成功' : '新增成功' })
-          this.dialogVisible = false
-          this.getTraceabilityList()
         }
       })
     },
