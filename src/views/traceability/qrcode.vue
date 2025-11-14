@@ -140,9 +140,9 @@ export default {
           const { qrcodeUrl, traceabilityLink } = response.data
           this.qrcodeUrl = qrcodeUrl
           this.traceabilityLink = traceabilityLink
-          
+
           this.linkDescription = `该二维码链接指向溯源码验证页面，用户扫描后会跳转到溯源码H5页面，前端会通过链接中携带的productId=${this.searchForm.productId}参数获取相应的产品信息。${this.searchForm.productName ? `产品名称：${this.searchForm.productName}` : ''}`
-          
+
           this.$message.success('二维码生成成功')
           // 重新获取列表以显示最新生成的二维码
           this.fetchQRCodeList()

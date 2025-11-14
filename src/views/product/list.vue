@@ -118,7 +118,7 @@ export default {
     // 获取产品列表
     getProductList() {
       this.loading = true
-      
+
       const params = {
         page: this.currentPage,
         pageSize: this.pageSize,
@@ -198,7 +198,7 @@ export default {
           text: '正在删除...',
           spinner: 'el-icon-loading'
         })
-        
+
         deleteProduct(row.id)
           .then(() => {
             this.$message({ type: 'success', message: '删除成功' })
@@ -228,7 +228,7 @@ export default {
           text: '正在批量删除...',
           spinner: 'el-icon-loading'
         })
-        
+
         const ids = this.multipleSelection.map(item => item.id)
         deleteProduct(ids)
           .then(() => {
@@ -260,7 +260,7 @@ export default {
           text: '正在上架...',
           spinner: 'el-icon-loading'
         })
-        
+
         publishProduct(row.id)
           .then(() => {
             this.$message({ type: 'success', message: '上架成功' })
@@ -290,7 +290,7 @@ export default {
           text: '正在下架...',
           spinner: 'el-icon-loading'
         })
-        
+
         offlineProduct(row.id)
           .then(() => {
             this.$message({ type: 'success', message: '下架成功' })
@@ -320,7 +320,7 @@ export default {
           text: '正在批量上架...',
           spinner: 'el-icon-loading'
         })
-        
+
         const ids = this.multipleSelection.map(item => item.id)
         publishProduct(ids)
           .then(() => {
@@ -352,7 +352,7 @@ export default {
           text: '正在批量下架...',
           spinner: 'el-icon-loading'
         })
-        
+
         const ids = this.multipleSelection.map(item => item.id)
         offlineProduct(ids)
           .then(() => {

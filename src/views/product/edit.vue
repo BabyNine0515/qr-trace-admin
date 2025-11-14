@@ -305,7 +305,7 @@ export default {
         this.loading = true
         const response = await getProductById(this.productId)
         const { data } = response
-        
+
         this.productForm = {
           name: data.name,
           batch: data.batch,
@@ -322,10 +322,10 @@ export default {
           manufacturerId: data.manufacturerId,
           upstreamInfoId: data.upstreamInfoId
         }
-        
+
         // 加载产品图片
         this.imageList = data.images || []
-        
+
         // 加载产品视频
         this.videoUrl = data.videoUrl || ''
       } catch (error) {
@@ -355,7 +355,7 @@ export default {
         this.imageList = fileList
       }
     },
-    
+
     // 上传图片
     async beforeAvatarUpload(file) {
       try {
@@ -414,18 +414,18 @@ export default {
 
     // 提交表单
     async handleSubmit() {
-      this.$refs.productForm.validate(async (valid) => {
+      this.$refs.productForm.validate(async(valid) => {
         if (valid) {
           try {
             this.loading = true
-            
+
             // 准备提交数据
             const submitData = {
               ...this.productForm,
               images: this.imageList.map(img => img.url),
               videoUrl: this.videoUrl
             }
-            
+
             if (this.isEdit) {
               // 编辑产品
               await updateProduct(this.productId, submitData)
@@ -435,7 +435,7 @@ export default {
               await createProduct(submitData)
               this.$message({ type: 'success', message: '添加成功' })
             }
-            
+
             this.$router.push('/product/list')
           } catch (error) {
             this.$message.error((this.isEdit ? '编辑' : '添加') + '失败: ' + (error.message || '未知错误'))

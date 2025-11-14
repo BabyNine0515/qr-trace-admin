@@ -83,7 +83,7 @@ const actions = {
             localStorage.setItem('userInfo', JSON.stringify(data))
           } else {
             data = JSON.parse(userInfoStr)
-            
+
             // 确保数据存在且roles有效
             if (!data || !data.roles || data.roles.length <= 0) {
               console.log('用户信息不完整，使用默认管理员角色')

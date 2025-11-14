@@ -82,8 +82,6 @@ export const batchGenerateTraceabilityCodes = (count) => {
   })
 }
 
-
-
 // 上传图片
 export const uploadImage = (file) => {
   const formData = new FormData()

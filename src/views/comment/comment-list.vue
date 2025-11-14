@@ -382,7 +382,7 @@ export default {
           page: this.currentPage,
           pageSize: this.pageSize
         }
-        
+
         const response = await getCommentList(params)
         this.commentList = response.data || []
       } catch (error) {
@@ -497,15 +497,15 @@ export default {
           cancelButtonText: '取消',
           type: 'warning'
         })
-        
+
         this.loading = true
         await deleteCommentApi(id)
-        
+
         // 从列表中移除
         this.commentList = this.commentList.filter(item => item.id !== id)
         // 从选中列表中移除
         this.selectedRows = this.selectedRows.filter(item => item.id !== id)
-        
+
         this.$message.success('删除成功')
       } catch (error) {
         // 如果是用户取消，不显示错误信息
@@ -530,11 +530,11 @@ export default {
           cancelButtonText: '取消',
           type: 'warning'
         })
-        
+
         this.loading = true
         const idsToDelete = this.selectedRows.map(item => item.id)
         await batchDeleteComments(idsToDelete)
-        
+
         this.commentList = this.commentList.filter(item => !idsToDelete.includes(item.id))
         this.selectedRows = []
         this.$message.success(`成功删除 ${idsToDelete.length} 条评论`)

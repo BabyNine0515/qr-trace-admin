@@ -134,13 +134,13 @@ export default {
       this.$refs.verifyForm.validate((valid) => {
         if (valid) {
           this.loading = true
-          
+
           // 调用真实的验证API
           verifyTraceability(this.verifyForm.code)
             .then(res => {
               this.loading = false
               this.resultVisible = true
-              
+
               this.verifyResult = {
                 status: 'success',
                 message: '溯源码有效',
@@ -153,7 +153,7 @@ export default {
             .catch(error => {
               this.loading = false
               this.resultVisible = true
-              
+
               this.verifyResult = {
                 status: 'error',
                 message: error.response?.data?.message || '验证失败，请检查溯源码是否正确'
@@ -233,7 +233,7 @@ export default {
         verifyTime: new Date().toISOString(),
         result: 'success'
       }
-      
+
       saveVerifyHistory(historyData)
         .then(() => {
           console.log('验证历史保存成功')

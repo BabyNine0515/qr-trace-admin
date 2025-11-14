@@ -365,7 +365,7 @@ import { getCommentList, getProductList, approveComment, rejectComment, deleteCo
 export default {
   name: 'CommentApproval',
   data() {
-      return {
+    return {
       // 评论列表
       commentList: [],
       // 产品列表（用于关联选择）
@@ -497,7 +497,7 @@ export default {
         startDate: this.searchParams.startDate,
         endDate: this.searchParams.endDate
       }
-      
+
       getCommentList(params)
         .then(res => {
           this.commentList = res.data.list || []
@@ -633,7 +633,7 @@ export default {
             content: this.replyForm.replyContent,
             type: this.replyForm.replyType
           }
-          
+
           replyComment(params)
             .then(() => {
               this.$message.success('回复成功')
@@ -707,7 +707,7 @@ export default {
             id: this.rejectTargetId,
             reason: this.rejectReasonForm.reason || '未提供理由'
           }
-          
+
           rejectComment(params)
             .then(() => {
               // 如果从详情页操作，关闭详情页

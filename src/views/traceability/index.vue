@@ -503,7 +503,7 @@ export default {
     // 获取溯源码列表
     getTraceabilityList() {
       this.loading = true
-      
+
       const params = {
         page: this.currentPage,
         pageSize: this.pageSize,
@@ -518,7 +518,7 @@ export default {
           const { list, total, statistics } = response.data
           this.traceabilityList = list
           this.total = total
-          
+
           // 更新统计数据
           this.totalStats = {
             totalCount: statistics.totalCount,
@@ -530,7 +530,7 @@ export default {
         .catch(error => {
           console.error('获取数据失败:', error)
           this.$message.error('获取数据失败，请稍后重试')
-          
+
           // 模拟数据作为后备
           this.traceabilityList = [
             {
@@ -779,7 +779,7 @@ export default {
           text: '正在删除...',
           spinner: 'el-icon-loading'
         })
-        
+
         deleteTraceability(row.id)
           .then(() => {
             this.$message({
@@ -820,7 +820,7 @@ export default {
           text: '正在批量删除...',
           spinner: 'el-icon-loading'
         })
-        
+
         // 批量删除 - 这里为简化，实际项目中应该有批量删除的API
         Promise.all(this.multipleSelection.map(item => deleteTraceability(item.id)))
           .then(() => {
@@ -859,20 +859,20 @@ export default {
       this.$refs.batchForm.validate((valid) => {
         if (valid) {
           const count = this.batchForm.count
-          
+
           this.$loading({
             lock: true,
             text: `正在批量生成${count}个溯源码...`,
             spinner: 'el-icon-loading'
           })
-          
+
           batchGenerateTraceabilityCodes(this.batchForm)
             .then(() => {
               this.$message({
                 type: 'success',
                 message: `成功生成${count}个溯源码`
               })
-              
+
               this.batchGenerateVisible = false
               this.getTraceabilityList()
             })
@@ -992,7 +992,7 @@ export default {
     // 图片上传处理
     handleImageChange(file, fileList) {
       this.$loading({ text: '正在上传图片...' })
-      
+
       uploadImage(file.raw)
         .then(response => {
           // 保存服务器返回的URL到文件对象
@@ -1035,7 +1035,7 @@ export default {
     // 视频上传处理
     handleVideoChange(file, fileList) {
       this.$loading({ text: '正在上传视频...' })
-      
+
       uploadVideo(file.raw)
         .then(response => {
           // 更新视频列表，使用服务器返回的URL
@@ -1083,7 +1083,7 @@ export default {
     // 验证报告上传处理
     handleCertificateChange(file, fileList) {
       this.$loading({ text: '正在上传验证报告...' })
-      
+
       uploadCertificate(file.raw)
         .then(response => {
           // 更新证书列表，使用服务器返回的URL
@@ -1138,7 +1138,7 @@ export default {
     // 征兆图片上传处理
     handleSymptomImageChange(file, fileList) {
       this.$loading({ text: '正在上传征兆图片...' })
-      
+
       uploadImage(file.raw)
         .then(response => {
           // 更新征兆图片列表，使用服务器返回的URL
@@ -1281,7 +1281,7 @@ export default {
             text: '正在保存...',
             spinner: 'el-icon-loading'
           })
-          
+
           if (this.form.id) {
             // 编辑
             updateTraceability(this.form.id, formData)

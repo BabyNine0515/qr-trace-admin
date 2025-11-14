@@ -153,10 +153,10 @@ export default {
           keyword: this.searchForm.keyword,
           status: this.searchForm.status
         }
-        
+
         const response = await getProductList(params)
         const { data, total } = response
-        
+
         this.productList = data || []
         this.total = total || 0
       } catch (error) {
@@ -202,7 +202,7 @@ export default {
           cancelButtonText: '取消',
           type: 'warning'
         })
-        
+
         await publishProduct(row.id)
         row.status = 'on_sale'
         this.$message({ type: 'success', message: '上架成功' })
@@ -222,7 +222,7 @@ export default {
           cancelButtonText: '取消',
           type: 'warning'
         })
-        
+
         await unpublishProduct(row.id)
         row.status = 'off_sale'
         this.$message({ type: 'success', message: '下架成功' })
@@ -242,14 +242,14 @@ export default {
           cancelButtonText: '取消',
           type: 'warning'
         })
-        
+
         const ids = this.selectedProducts.map(item => item.id)
         await batchPublishProducts(ids)
-        
+
         this.selectedProducts.forEach(item => {
           item.status = 'on_sale'
         })
-        
+
         this.$message({ type: 'success', message: '批量上架成功' })
         this.clearSelection()
       } catch (error) {
@@ -268,14 +268,14 @@ export default {
           cancelButtonText: '取消',
           type: 'warning'
         })
-        
+
         const ids = this.selectedProducts.map(item => item.id)
         await batchUnpublishProducts(ids)
-        
+
         this.selectedProducts.forEach(item => {
           item.status = 'off_sale'
         })
-        
+
         this.$message({ type: 'success', message: '批量下架成功' })
         this.clearSelection()
       } catch (error) {
