@@ -50,7 +50,16 @@ const actions = {
   generateRoutes({ commit }, roles) {
     return new Promise(resolve => {
       let accessedRoutes
-      if (roles.includes('admin')) {
+      // Ensure roles is a valid array
+      if (!roles || !Array.isArray(roles) || roles.length === 0) {
+        console.warn('Invalid roles provided to generateRoutes:', roles)
+        accessedRoutes = []
+        commit('SET_ROUTES', accessedRoutes)
+        resolve(accessedRoutes)
+        return
+      }
+
+      if (roles.includes('admin') || roles.includes('all')) {
         accessedRoutes = asyncRoutes || []
       } else {
         accessedRoutes = filterAsyncRoutes(asyncRoutes, roles)

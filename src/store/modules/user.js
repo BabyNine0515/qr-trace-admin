@@ -58,16 +58,26 @@ const actions = {
             reject('Verification failed, please Login again.')
           }
 
-          const { permissions, name, avatar, introduction, role_name } = data
+          const { name, avatar, role } = data
+          const role_name = role?.name
 
-          // roles must be a non-null array
-          // Map permissions to roles for compatibility with existing code
-          const roles = permissions && permissions.length > 0 ? permissions : ['admin']
+          // Parse permissions from role.permissions (JSON string)
+          let roles = ['admin'] // default
+          if (role && role.permissions) {
+            try {
+              const parsedPermissions = JSON.parse(role.permissions)
+              if (Array.isArray(parsedPermissions) && parsedPermissions.length > 0) {
+                roles = parsedPermissions
+              }
+            } catch (e) {
+              console.error('Failed to parse role.permissions:', e)
+            }
+          }
 
           commit('SET_ROLES', roles)
           commit('SET_NAME', name)
           commit('SET_AVATAR', avatar || 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif')
-          commit('SET_INTRODUCTION', introduction || role_name || 'User')
+          commit('SET_INTRODUCTION', role_name || 'User')
           resolve(data)
         })
         .catch(error => {
