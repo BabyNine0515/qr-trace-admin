@@ -4,7 +4,7 @@ import request from '@/utils/request'
 // 获取检验报告列表
 export const getInspectionReportList = (params) => {
   return request({
-    url: '/quality/inspection-report/list',
+    url: '/quality/report/list',
     method: 'get',
     params
   })
@@ -13,7 +13,7 @@ export const getInspectionReportList = (params) => {
 // 获取检验报告详情
 export const getInspectionReportDetail = (id) => {
   return request({
-    url: `/quality/inspection-report/detail/${id}`,
+    url: `/quality/report/detail/${id}`,
     method: 'get'
   })
 }
@@ -21,7 +21,7 @@ export const getInspectionReportDetail = (id) => {
 // 创建检验报告
 export const createInspectionReport = (data) => {
   return request({
-    url: '/quality/inspection-report/create',
+    url: '/quality/report/create',
     method: 'post',
     data
   })
@@ -30,7 +30,7 @@ export const createInspectionReport = (data) => {
 // 更新检验报告
 export const updateInspectionReport = (id, data) => {
   return request({
-    url: `/quality/inspection-report/update/${id}`,
+    url: `/quality/report/update/${id}`,
     method: 'put',
     data
   })
@@ -39,15 +39,15 @@ export const updateInspectionReport = (id, data) => {
 // 删除检验报告
 export const deleteInspectionReport = (id) => {
   return request({
-    url: `/quality/inspection-report/delete/${id}`,
+    url: `/quality/report/delete/${id}`,
     method: 'delete'
   })
 }
 
 // 上传检验报告文件
-export const uploadInspectionReportFile = (id, data) => {
+export const uploadInspectionReportFile = (data) => {
   return request({
-    url: `/quality/inspection-report/upload/${id}`,
+    url: '/quality/report/upload',
     method: 'post',
     data,
     headers: {

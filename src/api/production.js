@@ -4,7 +4,7 @@ import request from '@/utils/request'
 // 获取上游生产信息列表
 export const getUpstreamInfoList = (params) => {
   return request({
-    url: '/production/upstream/list',
+    url: '/production/upstream-info/list',
     method: 'get',
     params
   })
@@ -13,7 +13,7 @@ export const getUpstreamInfoList = (params) => {
 // 获取上游生产信息详情
 export const getUpstreamInfoDetail = (id) => {
   return request({
-    url: `/production/upstream/detail/${id}`,
+    url: `/production/upstream-info/detail/${id}`,
     method: 'get'
   })
 }
@@ -21,7 +21,7 @@ export const getUpstreamInfoDetail = (id) => {
 // 创建上游生产信息
 export const createUpstreamInfo = (data) => {
   return request({
-    url: '/production/upstream/create',
+    url: '/production/upstream-info/create',
     method: 'post',
     data
   })
@@ -30,7 +30,7 @@ export const createUpstreamInfo = (data) => {
 // 更新上游生产信息
 export const updateUpstreamInfo = (id, data) => {
   return request({
-    url: `/production/upstream/update/${id}`,
+    url: `/production/upstream-info/update/${id}`,
     method: 'put',
     data
   })
@@ -39,7 +39,7 @@ export const updateUpstreamInfo = (id, data) => {
 // 删除上游生产信息
 export const deleteUpstreamInfo = (id) => {
   return request({
-    url: `/production/upstream/delete/${id}`,
+    url: `/production/upstream-info/delete/${id}`,
     method: 'delete'
   })
 }
