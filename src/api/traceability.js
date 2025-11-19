@@ -32,10 +32,21 @@ export const createTraceability = (data) => {
 
 // 生成溯源码二维码
 export const generateQRCode = (data) => {
+  // 确保traceabilityId是数字类型，使用JSON格式发送以符合API要求
+  const requestData = {
+    traceabilityId: Number(data.traceabilityId || data.productId),
+    size: data.size || 256 // 设置默认值256
+  }
+
+  console.log('API参数设置:', requestData)
+
   return request({
     url: '/traceability/qrcode/generate',
     method: 'post',
-    data
+    data: requestData,
+    headers: {
+      'Content-Type': 'application/json'
+    }
   })
 }
 

@@ -51,13 +51,22 @@
           <span>已生成的二维码列表</span>
         </div>
         <el-table :data="qrcodeList" style="width: 100%">
-          <el-table-column prop="id" label="序号" width="80" />
-          <el-table-column prop="productId" label="产品ID" width="150" />
-          <el-table-column prop="productName" label="产品名称" width="180" />
-          <el-table-column prop="createTime" label="创建时间" width="180" />
+          <el-table-column type="index" label="序号" width="80" />
+          <el-table-column label="产品ID" width="150">
+            <template slot-scope="scope">
+              {{ scope.row.traceability_id || '-' }}
+            </template>
+          </el-table-column>
+          <!-- <el-table-column prop="productName" label="产品名称" width="180" /> -->
+          <el-table-column label="创建时间" width="180">
+            <template slot-scope="scope">
+              {{ scope.row.created_at || '-' }}
+            </template>
+          </el-table-column>
           <el-table-column label="二维码" width="120">
             <template slot-scope="scope">
-              <img :src="scope.row.qrcodeUrl" alt="二维码" class="small-qrcode" @click="showQRCodeDialog(scope.row)">
+              <!-- 使用qr_code_txt字段生成二维码 -->
+              <img :src="generateQRCodeFromText(scope.row.qr_code_txt)" alt="二维码" class="small-qrcode" @click="showQRCodeDialog(scope.row)">
             </template>
           </el-table-column>
           <el-table-column label="操作" width="200">
@@ -124,10 +133,19 @@ export default {
         return
       }
 
+      // 创建新对象确保参数是数字类型
+      const inputValue = this.searchForm.productId
+      const numericTraceabilityId = Number(inputValue)
+      console.log('输入值:', inputValue, '类型:', typeof inputValue)
+      console.log('转换后的traceabilityId类型:', typeof numericTraceabilityId, '值:', numericTraceabilityId)
+
+      // 同时提供两种参数名称以确保兼容性
       const params = {
-        productId: this.searchForm.productId,
-        productName: this.searchForm.productName
+        traceabilityId: numericTraceabilityId,
+        productId: numericTraceabilityId, // 保留productId以兼容截图中的实际发送情况
+        size: 512 // 添加size参数
       }
+      console.log('发送给API的参数:', params)
 
       this.$loading({
         lock: true,
@@ -137,11 +155,12 @@ export default {
 
       generateQRCode(params)
         .then(response => {
-          const { qrcodeUrl, traceabilityLink } = response.data
+          console.log('API响应数据:', response.data)
+          const { qrcodeUrl, traceabilityLink } = response.data || {}
           this.qrcodeUrl = qrcodeUrl
           this.traceabilityLink = traceabilityLink
 
-          this.linkDescription = `该二维码链接指向溯源码验证页面，用户扫描后会跳转到溯源码H5页面，前端会通过链接中携带的productId=${this.searchForm.productId}参数获取相应的产品信息。${this.searchForm.productName ? `产品名称：${this.searchForm.productName}` : ''}`
+          this.linkDescription = `该二维码链接指向溯源码验证页面，用户扫描后会跳转到溯源码H5页面，前端会通过链接中携带的traceabilityId=${numericTraceabilityId}参数获取相应的产品信息。${this.searchForm.productName ? `产品名称：${this.searchForm.productName}` : ''}`
 
           this.$message.success('二维码生成成功')
           // 重新获取列表以显示最新生成的二维码
@@ -213,8 +232,10 @@ export default {
 
       getQRCodeList(params)
         .then(response => {
-          this.qrcodeList = response.data.list
-          this.total = response.data.total
+          console.log('获取的二维码列表数据:', response.data)
+          // 确保数据安全访问
+          this.qrcodeList = response && response.data && response.data.list ? response.data.list : []
+          this.total = response && response.data && response.data.total ? response.data.total : 0
         })
         .catch(error => {
           console.error('获取二维码列表失败:', error)
@@ -242,17 +263,28 @@ export default {
       this.fetchQRCodeList()
     },
 
+    // 从文本生成二维码图片URL
+    generateQRCodeFromText(text) {
+      if (!text) return ''
+      // 使用在线二维码生成服务将文本转换为二维码图片
+      return `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(text)}`
+    },
+
     // 显示二维码对话框
     showQRCodeDialog(item) {
-      this.dialogQRCodeUrl = item.qrcodeUrl
+      console.log('二维码数据:', item)
+      // 使用qr_code_txt生成预览二维码
+      this.dialogQRCodeUrl = this.generateQRCodeFromText(item.qr_code_txt)
       this.dialogVisible = true
     },
 
     // 下载单个二维码
     downloadSingleQRCode(item) {
+      console.log('下载二维码数据:', item)
       const link = document.createElement('a')
-      link.href = item.qrcodeUrl.replace('size=100x100', 'size=200x200')
-      link.download = `traceability-qrcode-${item.productId}.png`
+      // 使用qr_code_txt生成下载二维码
+      link.href = this.generateQRCodeFromText(item.qr_code_txt)
+      link.download = `traceability-qrcode-${item.traceability_id}.png`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -260,8 +292,10 @@ export default {
 
     // 复制单个链接
     copySingleLink(item) {
+      console.log('复制链接数据:', item)
       const textarea = document.createElement('textarea')
-      textarea.value = item.traceabilityLink
+      // 直接复制qr_code_txt字段的内容
+      textarea.value = item.qr_code_txt
       document.body.appendChild(textarea)
       textarea.select()
       document.execCommand('copy')

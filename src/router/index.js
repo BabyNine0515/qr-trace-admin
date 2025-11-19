@@ -78,18 +78,24 @@ export const constantRoutes = [
     name: 'PublicTraceabilityVerify',
     hidden: true
   },
+  // {
+  //   path: '/',
+  //   component: Layout,
+  //   redirect: '/dashboard',
+  //   children: [
+  //     {
+  //       path: 'dashboard',
+  //       component: () => import('@/views/dashboard/index'),
+  //       name: 'Dashboard',
+  //       meta: { title: '数据分析', icon: 'dashboard', affix: true }
+  //     }
+  //   ]
+  // },
+  // 根路径重定向到产品列表
   {
     path: '/',
     component: Layout,
-    redirect: '/dashboard',
-    children: [
-      {
-        path: 'dashboard',
-        component: () => import('@/views/dashboard/index'),
-        name: 'Dashboard',
-        meta: { title: '数据分析', icon: 'dashboard', affix: true }
-      }
-    ]
+    redirect: '/product/list'
   },
   // {
   //   path: '/documentation',
