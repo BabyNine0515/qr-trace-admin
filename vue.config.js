@@ -36,6 +36,16 @@ module.exports = {
       warnings: false,
       errors: true
     },
+    // Proxy API requests to backend server
+    proxy: {
+      '/dev-api': {
+        target: 'http://localhost:9702',
+        changeOrigin: true,
+        pathRewrite: {
+          '^/dev-api': '' // remove /dev-api prefix when forwarding
+        }
+      }
+    },
     before: require('./mock/mock-server.js')
   },
   configureWebpack: {
