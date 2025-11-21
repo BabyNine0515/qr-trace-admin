@@ -132,7 +132,7 @@ export const constantRoutes = [
         path: 'index',
         component: () => import('@/views/profile/index'),
         name: 'Profile',
-        meta: { title: '个人资料', icon: 'user', noCache: true }
+        meta: { title: '个人资料', icon: 'el-icon-user', noCache: true }
       }
     ]
   }
@@ -152,7 +152,7 @@ export const asyncRoutes = [
     name: 'Website',
     meta: {
       title: '官网管理',
-      icon: 'el-icon-globe',
+      icon: 'el-icon-office-building',
       roles: ['admin', 'editor']
     },
     children: [
@@ -207,7 +207,7 @@ export const asyncRoutes = [
     name: 'Traceability',
     meta: {
       title: '溯源码管理',
-      icon: 'el-icon-shield',
+      icon: 'el-icon-s-data',
       roles: ['admin', 'editor']
     },
     children: [
@@ -218,7 +218,7 @@ export const asyncRoutes = [
         name: 'TraceabilityQRCode',
         meta: {
           title: '溯源码二维码',
-          icon: 'el-icon-qrcode'
+          icon: 'el-icon-picture'
         }
       }
     ]
@@ -286,7 +286,7 @@ export const asyncRoutes = [
         name: 'ImageLibrary',
         meta: {
           title: '图片库管理',
-          icon: 'el-icon-image'
+          icon: 'el-icon-picture-outline'
         }
       },
       {
@@ -338,7 +338,7 @@ export const asyncRoutes = [
         name: 'CompanyQualification',
         meta: {
           title: '公司资质管理',
-          icon: 'el-icon-certificate'
+          icon: 'el-icon-document-checked'
         }
       },
       {
@@ -362,7 +362,7 @@ export const asyncRoutes = [
     name: 'Production',
     meta: {
       title: '生产信息管理',
-      icon: 'el-icon-factory',
+      icon: 'el-icon-s-tools',
       roles: ['admin', 'editor']
     },
     children: [
@@ -381,7 +381,7 @@ export const asyncRoutes = [
         name: 'FactoryManagement',
         meta: {
           title: '生产厂家管理',
-          icon: 'el-icon-management'
+          icon: 'el-icon-office-building'
         }
       }
     ]
@@ -396,7 +396,7 @@ export const asyncRoutes = [
     name: 'Quality',
     meta: {
       title: '质量信息管理',
-      icon: 'el-icon-quality',
+      icon: 'el-icon-s-claim',
       roles: ['admin', 'editor']
     },
     children: [
@@ -488,7 +488,7 @@ export const asyncRoutes = [
   //   name: 'Permission',
   //   meta: {
   //     title: '权限',
-  //     icon: 'lock',
+  //     icon: 'el-icon-lock',
   //     roles: ['admin', 'editor'] // you can set roles in root nav
   //   },
   //   children: [
@@ -498,6 +498,7 @@ export const asyncRoutes = [
   //       name: 'PagePermission',
   //       meta: {
   //         title: '页面权限',
+  //         icon: 'el-icon-document-lock',
   //         roles: ['admin'] // or you can only set roles in sub nav
   //       }
   //     },
@@ -506,7 +507,8 @@ export const asyncRoutes = [
   //       component: () => import('@/views/permission/directive'),
   //       name: 'DirectivePermission',
   //       meta: {
-  //         title: '指令权限'
+  //         title: '指令权限',
+  //         icon: 'el-icon-s-operation'
   //         // if do not set roles, means: this page does not require permission
   //       }
   //     },
@@ -516,6 +518,7 @@ export const asyncRoutes = [
   //       name: 'RolePermission',
   //       meta: {
   //         title: '角色权限',
+  //         icon: 'el-icon-user',
   //         roles: ['admin']
   //       }
   //     }
@@ -530,7 +533,7 @@ export const asyncRoutes = [
   //       path: 'index',
   //       component: () => import('@/views/icons/index'),
   //       name: 'Icons',
-  //       meta: { title: '图标', icon: 'icon', noCache: true }
+  //       meta: { title: '图标', icon: 'el-icon-menu', noCache: true }
   //     }
   //   ]
   // },
@@ -556,7 +559,7 @@ export const asyncRoutes = [
   //       path: 'create',
   //       component: () => import('@/views/example/create'),
   //       name: 'CreateArticle',
-  //       meta: { title: '创建文档', icon: 'edit' }
+  //       meta: { title: '创建文档', icon: 'el-icon-edit' }
   //     },
   //     {
   //       path: 'edit/:id(\\d+)',
@@ -569,7 +572,7 @@ export const asyncRoutes = [
   //       path: 'list',
   //       component: () => import('@/views/example/list'),
   //       name: 'ArticleList',
-  //       meta: { title: '文章列表', icon: 'list' }
+  //       meta: { title: '文章列表', icon: 'el-icon-s-order' }
   //     }
   //   ]
   // },
@@ -582,7 +585,7 @@ export const asyncRoutes = [
   //       path: 'index',
   //       component: () => import('@/views/tab/index'),
   //       name: 'Tab',
-  //       meta: { title: 'Tab', icon: 'tab' }
+  //       meta: { title: 'Tab', icon: 'el-icon-menu' }
   //     }
   //   ]
   // },
@@ -601,13 +604,13 @@ export const asyncRoutes = [
   //       path: '401',
   //       component: () => import('@/views/error-page/401'),
   //       name: 'Page401',
-  //       meta: { title: '401', noCache: true }
+  //       meta: { title: '401', icon: 'el-icon-warning', noCache: true }
   //     },
   //     {
   //       path: '404',
   //       component: () => import('@/views/error-page/404'),
   //       name: 'Page404',
-  //       meta: { title: '404', noCache: true }
+  //       meta: { title: '404', icon: 'el-icon-circle-close', noCache: true }
   //     }
   //   ]
   // },
@@ -639,25 +642,25 @@ export const asyncRoutes = [
   //       path: 'export-excel',
   //       component: () => import('@/views/excel/export-excel'),
   //       name: 'ExportExcel',
-  //       meta: { title: '导出 Excel' }
+  //       meta: { title: '导出 Excel', icon: 'el-icon-download' }
   //     },
   //     {
   //       path: 'export-selected-excel',
   //       component: () => import('@/views/excel/select-excel'),
   //       name: 'SelectExcel',
-  //       meta: { title: '导出选定内容' }
+  //       meta: { title: '导出选定内容', icon: 'el-icon-document-copy' }
   //     },
   //     {
   //       path: 'export-merge-header',
   //       component: () => import('@/views/excel/merge-header'),
   //       name: 'MergeHeader',
-  //       meta: { title: 'Merge Header' }
+  //       meta: { title: 'Merge Header', icon: 'el-icon-document-merge' }
   //     },
   //     {
   //       path: 'upload-excel',
   //       component: () => import('@/views/excel/upload-excel'),
   //       name: 'UploadExcel',
-  //       meta: { title: '上传 Excel' }
+  //       meta: { title: '上传 Excel', icon: 'el-icon-upload' }
   //     }
   //   ]
   // },
@@ -674,7 +677,7 @@ export const asyncRoutes = [
   //       path: 'download',
   //       component: () => import('@/views/zip/index'),
   //       name: 'ExportZip',
-  //       meta: { title: '导出 Zip' }
+  //       meta: { title: '导出 Zip', icon: 'el-icon-document-checked' }
   //     }
   //   ]
   // },
@@ -707,7 +710,7 @@ export const asyncRoutes = [
   //       path: 'index',
   //       component: () => import('@/views/theme/index'),
   //       name: 'Theme',
-  //       meta: { title: '主题', icon: 'theme' }
+  //       meta: { title: '主题', icon: 'el-icon-brush' }
   //     }
   //   ]
   // },
@@ -720,7 +723,7 @@ export const asyncRoutes = [
   //       path: 'index',
   //       component: () => import('@/views/clipboard/index'),
   //       name: 'ClipboardDemo',
-  //       meta: { title: '剪贴板', icon: 'clipboard' }
+  //       meta: { title: '剪贴板', icon: 'el-icon-document-copy' }
   //     }
   //   ]
   // },
@@ -731,7 +734,7 @@ export const asyncRoutes = [
   //   children: [
   //     {
   //       path: 'https://github.com/PanJiaChen/vue-element-admin',
-  //       meta: { title: 'External Link', icon: 'link' }
+  //       meta: { title: 'External Link', icon: 'el-icon-link' }
   //     }
   //   ]
   // },

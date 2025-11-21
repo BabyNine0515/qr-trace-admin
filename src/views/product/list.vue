@@ -91,7 +91,7 @@
 </template>
 
 <script>
-import { getProductList, deleteProduct, publishProduct, offlineProduct } from '@/api/product'
+import { getProductList, deleteProduct, publishProduct } from '@/api/product'
 
 export default {
   name: 'ProductList',
@@ -291,7 +291,7 @@ export default {
           spinner: 'el-icon-loading'
         })
 
-        offlineProduct(row.id)
+        publishProduct(row.id, { status: 'unpublished' })
           .then(() => {
             this.$message({ type: 'success', message: '下架成功' })
             this.getProductList()
@@ -341,12 +341,14 @@ export default {
     },
 
     // 批量下架
-    handleBatchOffline() {
-      this.$confirm(`确定要下架选中的${this.multipleSelection.length}个产品吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
+    async handleBatchOffline() {
+      try {
+        await this.$confirm(`确定要下架选中的${this.multipleSelection.length}个产品吗？`, '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+
         this.$loading({
           lock: true,
           text: '正在批量下架...',
@@ -354,22 +356,28 @@ export default {
         })
 
         const ids = this.multipleSelection.map(item => item.id)
-        offlineProduct(ids)
-          .then(() => {
-            this.$message({ type: 'success', message: '批量下架成功' })
-            this.getProductList()
-            this.multipleSelection = []
-          })
-          .catch(error => {
-            console.error('批量下架失败:', error)
-            this.$message.error('批量下架失败，请稍后重试')
-          })
-          .finally(() => {
-            this.$loading().close()
-          })
-      }).catch(() => {
-        this.$message({ type: 'info', message: '已取消下架' })
-      })
+        for (const id of ids) {
+          await publishProduct(id, { status: 'unpublished' })
+        }
+
+        this.$message({ type: 'success', message: '批量下架成功' })
+        this.getProductList()
+        this.multipleSelection = []
+      } catch (error) {
+        if (error !== 'cancel') {
+          console.error('批量下架失败:', error)
+          this.$message.error('批量下架失败，请稍后重试')
+        } else {
+          this.$message({ type: 'info', message: '已取消下架' })
+        }
+      } finally {
+        try {
+          this.$loading().close()
+        } catch (e) {
+          // 忽略关闭loading时可能出现的错误
+          console.warn('关闭loading时出错:', e)
+        }
+      }
     },
 
     // 导出数据

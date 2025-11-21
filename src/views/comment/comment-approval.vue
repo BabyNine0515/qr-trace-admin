@@ -360,7 +360,8 @@
 </template>
 
 <script>
-import { getCommentList, getProductList, approveComment, rejectComment, deleteCommentApi, batchApproveComments, batchRejectComments, replyComment } from '@/api/comment'
+import { getCommentList, approveComment, deleteComment, replyComment, batchApproveComments } from '@/api/comment'
+import { getProductList } from '@/api/product'
 
 export default {
   name: 'CommentApproval',
@@ -703,12 +704,7 @@ export default {
       this.$refs['rejectReasonForm'].validate((valid) => {
         if (valid) {
           this.loading = true
-          const params = {
-            id: this.rejectTargetId,
-            reason: this.rejectReasonForm.reason || '未提供理由'
-          }
-
-          rejectComment(params)
+          approveComment(this.rejectTargetId, { status: 'rejected', reason: this.rejectReasonForm.reason || '未提供理由' })
             .then(() => {
               // 如果从详情页操作，关闭详情页
               if (this.rejectTargetFromDetail) {
@@ -742,7 +738,7 @@ export default {
         type: 'warning'
       }).then(() => {
         this.loading = true
-        deleteCommentApi(id)
+        deleteComment(id)
           .then(() => {
             // 从选中列表中移除
             this.selectedRows = this.selectedRows.filter(item => item.id !== id)
@@ -820,30 +816,7 @@ export default {
         return
       }
 
-      this.$confirm(`确定要拒绝选中的 ${pendingComments.length} 条评论吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'danger'
-      }).then(() => {
-        this.loading = true
-        const idsToReject = pendingComments.map(item => item.id)
-        batchRejectComments(idsToReject, { reason: '批量操作' })
-          .then(() => {
-            // 更新选中列表
-            this.selectedRows = this.selectedRows.filter(item => !idsToReject.includes(item.id))
-
-            this.$message.success(`成功拒绝 ${idsToReject.length} 条评论`)
-            // 刷新评论列表
-            this.fetchCommentList()
-          })
-          .catch(err => {
-            this.$message.error('批量拒绝失败')
-            console.error('批量拒绝评论错误:', err)
-          })
-          .finally(() => {
-            this.loading = false
-          })
-      })
+      this.$message.warning('批量拒绝功能暂不可用')
     }
   }
 }

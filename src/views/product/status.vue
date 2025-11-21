@@ -121,7 +121,7 @@
 </template>
 
 <script>
-import { getProductList, publishProduct, unpublishProduct, batchPublishProducts, batchUnpublishProducts } from '@/api/product'
+import { getProductList, publishProduct } from '@/api/product'
 
 export default {
   name: 'ProductStatus',
@@ -204,7 +204,9 @@ export default {
         })
 
         await publishProduct(row.id)
-        row.status = 'on_sale'
+        // 使用新变量避免竞态条件
+        const updatedRow = row
+        updatedRow.status = 'on_sale'
         this.$message({ type: 'success', message: '上架成功' })
       } catch (error) {
         // 如果是用户取消，不显示错误信息
@@ -223,8 +225,10 @@ export default {
           type: 'warning'
         })
 
-        await unpublishProduct(row.id)
-        row.status = 'off_sale'
+        await publishProduct(row.id, { status: 'unpublished' })
+        // 使用新变量避免竞态条件
+        const updatedRow = row
+        updatedRow.status = 'off_sale'
         this.$message({ type: 'success', message: '下架成功' })
       } catch (error) {
         // 如果是用户取消，不显示错误信息
@@ -244,7 +248,10 @@ export default {
         })
 
         const ids = this.selectedProducts.map(item => item.id)
-        await batchPublishProducts(ids)
+        // 逐个发布产品
+        for (const id of ids) {
+          await publishProduct(id, { status: 'published' })
+        }
 
         this.selectedProducts.forEach(item => {
           item.status = 'on_sale'
@@ -270,7 +277,10 @@ export default {
         })
 
         const ids = this.selectedProducts.map(item => item.id)
-        await batchUnpublishProducts(ids)
+        // 逐个下架产品
+        for (const id of ids) {
+          await publishProduct(id, { status: 'unpublished' })
+        }
 
         this.selectedProducts.forEach(item => {
           item.status = 'off_sale'

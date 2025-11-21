@@ -270,7 +270,7 @@
 </template>
 
 <script>
-import { getCommentList, deleteComment as deleteCommentApi, batchDeleteComments } from '@/api/comment'
+import { getCommentList, deleteComment, batchDeleteComment } from '@/api/comment'
 
 export default {
   name: 'CommentList',
@@ -499,7 +499,7 @@ export default {
         })
 
         this.loading = true
-        await deleteCommentApi(id)
+        await deleteComment(id)
 
         // 从列表中移除
         this.commentList = this.commentList.filter(item => item.id !== id)
@@ -533,7 +533,7 @@ export default {
 
         this.loading = true
         const idsToDelete = this.selectedRows.map(item => item.id)
-        await batchDeleteComments(idsToDelete)
+        await batchDeleteComment(idsToDelete)
 
         this.commentList = this.commentList.filter(item => !idsToDelete.includes(item.id))
         this.selectedRows = []
