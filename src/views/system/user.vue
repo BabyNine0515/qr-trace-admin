@@ -27,21 +27,13 @@
         </el-form>
       </div>
 
-      <el-table :data="filteredUserData" style="width: 100%" stripe>
-        <el-table-column type="index" label="序号" width="80" />
+      <el-table :data="tableData" style="width: 100%" stripe>
+        <el-table-column prop="id" label="id" width="80" />
         <el-table-column prop="username" label="用户名" width="180" />
-        <el-table-column prop="nickname" label="昵称" width="180" />
-        <el-table-column prop="role" label="角色" width="120">
-          <template slot-scope="scope">
-            <el-tag :type="scope.row.role === 'admin' ? 'primary' : 'success'">
-              {{ scope.row.role === 'admin' ? '超级管理员' : '编辑' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column prop="is_deleted" label="状态" width="100">
           <template slot-scope="scope">
             <el-switch
-              v-model="scope.row.status"
+              v-model="scope.row.is_deleted"
               active-color="#13ce66"
               inactive-color="#ff4949"
               :active-value="1"
@@ -51,8 +43,8 @@
             />
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column prop="lastLoginTime" label="最后登录时间" width="180" />
+        <el-table-column prop="created_at" label="创建时间" width="180" />
+        <el-table-column prop="updated_at" label="更新时间" width="180" />
         <el-table-column label="操作" width="180" fixed="right">
           <template slot-scope="scope">
             <el-button
@@ -80,7 +72,7 @@
           v-model="currentPage"
           background
           layout="prev, pager, next, jumper, sizes, total"
-          :total="filteredUserData.length"
+          :total="total"
           :page-sizes="[10, 20, 50, 100]"
           :page-size="pageSize"
           @size-change="handleSizeChange"
@@ -100,9 +92,9 @@
         <el-form-item label="用户名" prop="username">
           <el-input v-model="formData.username" :disabled="isEdit" placeholder="请输入用户名" />
         </el-form-item>
-        <el-form-item label="昵称" prop="nickname">
+        <!-- <el-form-item label="昵称" prop="nickname">
           <el-input v-model="formData.nickname" placeholder="请输入昵称" />
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item label="密码" :required="!isEdit" prop="password">
           <el-input
             v-model="formData.password"
@@ -111,15 +103,15 @@
             :placeholder="isEdit ? '留空表示不修改密码' : '请输入密码'"
           />
         </el-form-item>
-        <el-form-item label="角色" prop="role" :disabled="isSystemAdmin">
+        <!-- <el-form-item label="角色" prop="role" :disabled="isSystemAdmin">
           <el-radio-group v-model="formData.role">
             <el-radio label="admin">超级管理员</el-radio>
             <el-radio label="editor">编辑</el-radio>
           </el-radio-group>
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
+        </el-form-item> -->
+        <el-form-item label="状态" prop="is_deleted">
           <el-switch
-            v-model="formData.status"
+            v-model="formData.is_deleted"
             active-color="#13ce66"
             inactive-color="#ff4949"
             :active-value="1"
@@ -160,6 +152,7 @@
 </template>
 
 <script>
+import { getUserList, createUser, deleteUser, updateUser } from '@/api/system'
 export default {
   name: 'UserPermission',
   data() {
@@ -168,30 +161,10 @@ export default {
         username: '',
         role: ''
       },
-      userData: [
-        {
-          id: 1,
-          username: 'admin',
-          nickname: '系统管理员',
-          role: 'admin',
-          status: 1,
-          createTime: '2025-01-01 00:00:00',
-          lastLoginTime: '2025-11-13 12:00:00',
-          isCurrentUser: true
-        },
-        {
-          id: 2,
-          username: 'editor',
-          nickname: '内容编辑',
-          role: 'editor',
-          status: 1,
-          createTime: '2025-01-15 10:30:00',
-          lastLoginTime: '2025-11-12 15:45:00',
-          isCurrentUser: false
-        }
-      ],
+      userData: [],
+      total: 0,
       permissions: [
-        { key: 'product_manage', name: '产品管理' },
+        { key: 'product_manage', name: '商品管理' },
         { key: 'media_manage', name: '媒体资源管理' },
         { key: 'company_manage', name: '公司信息管理' },
         { key: 'production_manage', name: '生产信息管理' },
@@ -214,17 +187,17 @@ export default {
         nickname: '',
         password: '',
         role: 'editor',
-        status: 1
+        is_deleted: 1
       },
       formRules: {
         username: [
           { required: true, message: '请输入用户名', trigger: 'blur' },
           { min: 3, max: 20, message: '长度在 3 到 20 个字符', trigger: 'blur' }
         ],
-        nickname: [
-          { required: true, message: '请输入昵称', trigger: 'blur' },
-          { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
-        ],
+        // nickname: [
+        //   { required: true, message: '请输入昵称', trigger: 'blur' },
+        //   { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
+        // ],
         password: [
           { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
         ]
@@ -232,34 +205,41 @@ export default {
     }
   },
   computed: {
-    filteredUserData() {
-      let result = this.userData
-
-      // 按用户名搜索
-      if (this.searchForm.username) {
-        result = result.filter(item =>
-          item.username.toLowerCase().includes(this.searchForm.username.toLowerCase())
-        )
-      }
-
-      // 按角色筛选
-      if (this.searchForm.role) {
-        result = result.filter(item => item.role === this.searchForm.role)
-      }
-
-      return result
-    },
-    // 获取当前页的数据
-    currentPageData() {
-      const start = (this.currentPage - 1) * this.pageSize
-      const end = start + this.pageSize
-      return this.filteredUserData.slice(start, end)
+    // 直接使用 userData 作为表格数据源，因为筛选和分页现在由后端处理
+    tableData() {
+      return this.userData
     }
   },
+  created() {
+    // 组件加载时获取管理员列表
+    this.fetchUserList()
+  },
   methods: {
+    // 获取管理员列表
+    async fetchUserList() {
+      try {
+        const params = {
+          page: this.currentPage,
+          pageSize: this.pageSize,
+          username: this.searchForm.username,
+          role: this.searchForm.role
+        }
+        const response = await getUserList(params)
+        if (response.code === 200) {
+          this.userData = response.data.admin_record || []
+          this.total = response.data.count || 0
+        } else {
+          this.$message.error('获取管理员列表失败')
+        }
+      } catch (error) {
+        console.error('获取管理员列表出错:', error)
+        this.$message.error('获取管理员列表失败')
+      }
+    },
     // 搜索
     handleSearch() {
       this.currentPage = 1
+      this.fetchUserList()
     },
     // 重置搜索
     resetSearch() {
@@ -268,15 +248,18 @@ export default {
         role: ''
       }
       this.currentPage = 1
+      this.fetchUserList()
     },
     // 页码大小变化
     handleSizeChange(val) {
       this.pageSize = val
       this.currentPage = 1
+      this.fetchUserList()
     },
     // 页码变化
     handleCurrentChange(val) {
       this.currentPage = val
+      this.fetchUserList()
     },
     // 添加用户
     handleAddUser() {
@@ -289,7 +272,7 @@ export default {
         nickname: '',
         password: '',
         role: 'editor',
-        status: 1
+        is_deleted: 1
       }
       this.dialogVisible = true
     },
@@ -301,27 +284,31 @@ export default {
       this.formData = {
         id: row.id,
         username: row.username,
-        nickname: row.nickname,
         password: '',
-        role: row.role,
-        status: row.status
+        is_deleted: row.is_deleted
       }
       this.dialogVisible = true
     },
     // 删除用户
-    handleDeleteUser(row) {
+    async handleDeleteUser(row) {
       this.$confirm('确定要删除这个管理员吗？', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-      }).then(() => {
-        // 在实际应用中，这里应该调用API删除用户
-        const index = this.userData.findIndex(item => item.id === row.id)
-        if (index > -1) {
-          this.userData.splice(index, 1)
+      }).then(async() => {
+        try {
+          await deleteUser(row.id)
           this.$message({
             type: 'success',
             message: '删除成功'
+          })
+          // 重新获取管理员列表
+          this.fetchUserList()
+        } catch (error) {
+          console.error('删除用户失败:', error)
+          this.$message({
+            type: 'error',
+            message: '删除失败'
           })
         }
       }).catch(() => {
@@ -332,49 +319,66 @@ export default {
       })
     },
     // 改变用户状态
-    handleStatusChange(row) {
-      // 在实际应用中，这里应该调用API更新用户状态
-      this.$message({
-        type: 'success',
-        message: `状态更新为${row.status ? '启用' : '禁用'}`
-      })
+    async handleStatusChange(row) {
+      try {
+        await updateUser(row.id, { is_deleted: row.is_deleted })
+        this.$message({
+          type: 'success',
+          message: `状态更新为${row.is_deleted ? '启用' : '禁用'}`
+        })
+        // 重新获取管理员列表
+        this.fetchUserList()
+      } catch (error) {
+        console.error('更新用户状态失败:', error)
+        this.$message({
+          type: 'error',
+          message: '状态更新失败'
+        })
+        // 如果更新失败，恢复原来的状态
+        const index = this.userData.findIndex(item => item.id === row.id)
+        if (index > -1) {
+          this.userData[index].is_deleted = row.is_deleted === 1 ? 0 : 1
+        }
+      }
     },
     // 提交表单
-    handleSubmit() {
-      this.$refs.formRef.validate((valid) => {
+    async handleSubmit() {
+      this.$refs.formRef.validate(async(valid) => {
         if (valid) {
-          // 在实际应用中，这里应该调用API保存用户
-          if (this.isEdit) {
-            // 编辑用户
-            const index = this.userData.findIndex(item => item.id === this.formData.id)
-            if (index > -1) {
-              const updateData = { ...this.formData }
-              // 如果密码为空，则不更新密码
-              if (!updateData.password) {
-                delete updateData.password
-              }
-              this.userData[index] = { ...this.userData[index], ...updateData }
+          try {
+            const formData = { ...this.formData }
+            // 如果密码为空，则不更新密码
+            if (!formData.password) {
+              delete formData.password
+            }
+
+            if (this.isEdit) {
+              // 编辑用户
+              await updateUser(this.formData.id, formData)
               this.$message({
                 type: 'success',
                 message: '编辑成功'
               })
+            } else {
+              // 添加用户
+              await createUser(formData)
+              this.$message({
+                type: 'success',
+                message: '添加成功'
+              })
             }
-          } else {
-            // 添加用户
-            const newUser = {
-              ...this.formData,
-              id: Date.now(),
-              createTime: new Date().toLocaleString('zh-CN'),
-              lastLoginTime: '-',
-              isCurrentUser: false
-            }
-            this.userData.push(newUser)
+
+            // 重新获取管理员列表
+            this.fetchUserList()
+            // 关闭对话框
+            this.dialogVisible = false
+          } catch (error) {
+            console.error('保存用户失败:', error)
             this.$message({
-              type: 'success',
-              message: '添加成功'
+              type: 'error',
+              message: '保存失败'
             })
           }
-          this.dialogVisible = false
         } else {
           return false
         }

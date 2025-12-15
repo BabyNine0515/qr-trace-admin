@@ -1,70 +1,56 @@
-// 公司信息管理相关API
+// 商户管理相关API
 import request from '@/utils/request'
 
-// 获取公司基本信息
-export const getCompanyInfo = () => {
+// 创建商户
+export const createMerchant = (data) => {
   return request({
-    url: '/company/info',
-    method: 'get'
-  })
-}
-
-// 更新公司基本信息
-export const updateCompanyInfo = (data) => {
-  return request({
-    url: '/company/update',
-    method: 'put',
-    data
-  })
-}
-
-// 获取公司资质列表
-export const getCompanyCertificates = () => {
-  return request({
-    url: '/company/certificates',
-    method: 'get'
-  })
-}
-
-// 添加公司资质
-export const addCertificate = (data) => {
-  return request({
-    url: '/company/certificate/add',
+    url: '/merchant',
     method: 'post',
     data
   })
 }
 
-// 更新公司资质
-export const updateCertificate = (id, data) => {
+// 获取商户列表
+export const getMerchantList = (params) => {
   return request({
-    url: `/company/certificate/update/${id}`,
+    url: '/merchant/list',
+    method: 'get',
+    params
+  })
+}
+
+// 修改商户
+export const updateMerchant = (data) => {
+  return request({
+    url: '/merchant',
     method: 'put',
     data
   })
 }
 
-// 删除公司资质
-export const deleteCertificate = (id) => {
+// 删除商户
+export const deleteMerchant = (id) => {
   return request({
-    url: `/company/certificate/delete/${id}`,
-    method: 'delete'
+    url: '/merchant',
+    method: 'delete',
+    params: { id }
   })
 }
 
-// 获取公司宣传媒体列表
-export const getCompanyMedia = () => {
+// 获取生产方列表
+export const getManufacturerList = (params) => {
   return request({
-    url: '/company/media',
-    method: 'get'
+    url: '/merchant/list',
+    method: 'get',
+    params
   })
 }
 
-// 更新公司宣传媒体
-export const updateCompanyMedia = (data) => {
+// 获取材料放列表
+export const getSupplierList = (params) => {
   return request({
-    url: '/company/media/update',
-    method: 'put',
-    data
+    url: '/merchant/list',
+    method: 'get',
+    params
   })
 }

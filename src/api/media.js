@@ -13,7 +13,7 @@ export const getImageList = (params) => {
 // 上传图片
 export const uploadImage = (data) => {
   return request({
-    url: '/media/image/upload',
+    url: '/upload',
     method: 'post',
     data,
     headers: {
@@ -42,7 +42,7 @@ export const getVideoList = (params) => {
 // 上传视频
 export const uploadVideo = (data) => {
   return request({
-    url: '/media/video/upload',
+    url: '/upload',
     method: 'post',
     data,
     headers: {

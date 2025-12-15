@@ -10,45 +10,29 @@ export const getCommentList = (params) => {
   })
 }
 
-// 获取评论详情
-export const getCommentDetail = (id) => {
+// 创建评论
+export const createComment = (data) => {
   return request({
-    url: `/comment/detail/${id}`,
-    method: 'get'
+    url: '/comment',
+    method: 'post',
+    data
   })
 }
 
-// 审核评论
-export const approveComment = (id, data) => {
+// 修改评论
+export const updateComment = (data) => {
   return request({
-    url: `/comment/approve/${id}`,
+    url: '/comment',
     method: 'put',
     data
   })
 }
 
 // 删除评论
-export const deleteComment = (id) => {
+export const deleteComment = (params) => {
   return request({
-    url: `/comment/delete/${id}`,
-    method: 'delete'
-  })
-}
-
-// 批量删除评论
-export const batchDeleteComment = (ids) => {
-  return request({
-    url: '/comment/batch-delete',
+    url: '/comment',
     method: 'delete',
-    data: { ids }
-  })
-}
-
-// 回复评论
-export const replyComment = (id, data) => {
-  return request({
-    url: `/comment/reply/${id}`,
-    method: 'post',
-    data
+    params
   })
 }

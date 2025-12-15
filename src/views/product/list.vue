@@ -3,26 +3,11 @@
     <el-card>
       <!-- 搜索筛选区域 -->
       <el-form :inline="true" :model="searchForm" class="mb-4">
-        <el-form-item label="产品名称">
-          <el-input v-model="searchForm.name" placeholder="请输入产品名称" clearable />
+        <el-form-item label="商品名称">
+          <el-input v-model="searchForm.name" placeholder="请输入商品名称" clearable />
         </el-form-item>
-        <el-form-item label="产品批次">
-          <el-input v-model="searchForm.batch" placeholder="请输入产品批次" clearable />
-        </el-form-item>
-        <el-form-item label="产品状态">
-          <el-select v-model="searchForm.status" placeholder="请选择产品状态" clearable>
-            <el-option label="全部" value="" />
-            <el-option label="已上架" value="online" />
-            <el-option label="已下架" value="offline" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="分类">
-          <el-select v-model="searchForm.category" placeholder="请选择产品分类" clearable>
-            <el-option label="全部" value="" />
-            <el-option label="肉类" value="meat" />
-            <el-option label="蔬菜类" value="vegetable" />
-            <el-option label="水果类" value="fruit" />
-          </el-select>
+        <el-form-item label="商户ID">
+          <el-input v-model="searchForm.merchant_id" placeholder="请输入商户ID" clearable />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleSearch">查询</el-button>
@@ -32,11 +17,8 @@
 
       <!-- 工具栏 -->
       <div class="toolbar mb-4">
-        <el-button type="primary" @click="handleCreate">新增产品</el-button>
-        <el-button :disabled="multipleSelection.length === 0" @click="handleBatchDelete">批量删除</el-button>
-        <el-button :disabled="multipleSelection.length === 0" @click="handleBatchPublish">批量上架</el-button>
-        <el-button :disabled="multipleSelection.length === 0" @click="handleBatchOffline">批量下架</el-button>
-        <el-button type="info" @click="handleExport">导出数据</el-button>
+        <el-button type="primary" @click="handleCreate">新增商品</el-button>
+        <!-- <el-button :disabled="multipleSelection.length === 0" @click="handleBatchDelete">批量删除</el-button> -->
       </div>
 
       <!-- 数据表格 -->
@@ -47,30 +29,22 @@
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" width="55" align="center" />
-        <el-table-column prop="id" label="产品ID" width="80" align="center" />
+        <el-table-column prop="id" label="商品ID" width="80" align="center" />
         <el-table-column prop="name" label="产品名称" align="center" />
-        <el-table-column prop="batch" label="产品批次" align="center" />
-        <el-table-column prop="category" label="分类" align="center">
+        <el-table-column prop="name_ch" label="中文名称" align="center" />
+        <el-table-column prop="name_en" label="英文名称" align="center" />
+        <el-table-column prop="merchant_id" label="商户ID" width="120" align="center" />
+        <el-table-column prop="brand" label="品牌" align="center" />
+        <el-table-column prop="place_of_origin" label="产地" align="center" />
+        <el-table-column prop="specifications" label="规格" align="center" />
+        <el-table-column prop="release_date" label="上市时间" align="center">
           <template slot-scope="scope">
-            <el-tag v-if="scope.row.category === 'meat'">肉类</el-tag>
-            <el-tag v-else-if="scope.row.category === 'vegetable'">蔬菜类</el-tag>
-            <el-tag v-else-if="scope.row.category === 'fruit'">水果类</el-tag>
-            <el-tag v-else>其他</el-tag>
+            {{ new Date(scope.row.release_date).toLocaleDateString() }}
           </template>
         </el-table-column>
-        <el-table-column prop="productionDate" label="生产日期" align="center" />
-        <el-table-column prop="status" label="状态" align="center">
-          <template slot-scope="scope">
-            <el-tag v-if="scope.row.status === 'online'" type="success">已上架</el-tag>
-            <el-tag v-else-if="scope.row.status === 'offline'" type="danger">已下架</el-tag>
-            <el-tag v-else>未发布</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="200" align="center">
+        <el-table-column label="操作" width="150" align="center">
           <template slot-scope="scope">
             <el-button type="primary" size="mini" @click="handleEdit(scope.row)">编辑</el-button>
-            <el-button v-if="scope.row.status !== 'online'" type="success" size="mini" @click="handlePublish(scope.row)">上架</el-button>
-            <el-button v-else type="danger" size="mini" @click="handleOffline(scope.row)">下架</el-button>
             <el-button type="danger" size="mini" @click="handleDelete(scope.row)">删除</el-button>
           </template>
         </el-table-column>
@@ -91,7 +65,7 @@
 </template>
 
 <script>
-import { getProductList, deleteProduct, publishProduct } from '@/api/product'
+import { getProductList, deleteProduct } from '@/api/product'
 
 export default {
   name: 'ProductList',
@@ -100,9 +74,7 @@ export default {
       loading: false,
       searchForm: {
         name: '',
-        batch: '',
-        status: '',
-        category: ''
+        merchant_id: ''
       },
       productList: [],
       multipleSelection: [],
@@ -111,42 +83,38 @@ export default {
       total: 0
     }
   },
-  created() {
+  activated() {
+    this.getProductList()
+  },
+  mounted() {
     this.getProductList()
   },
   methods: {
-    // 获取产品列表
+    // 获取商品列表
     getProductList() {
       this.loading = true
 
       const params = {
         page: this.currentPage,
-        pageSize: this.pageSize,
-        name: this.searchForm.name,
-        batch: this.searchForm.batch,
-        status: this.searchForm.status,
-        category: this.searchForm.category
+        size: this.pageSize,
+        merchant_id: this.searchForm.merchant_id
+      }
+
+      // 只有在搜索框有值时才添加name参数
+      if (this.searchForm.name) {
+        params.name = this.searchForm.name
       }
 
       getProductList(params)
         .then(response => {
-          this.productList = response.data.list
-          this.total = response.data.total
+          this.productList = response.data.goods_record || []
+          this.total = response.data.count || 0
         })
         .catch(error => {
           console.error('获取产品列表失败:', error)
           this.$message.error('获取数据失败，请稍后重试')
           // 模拟数据作为后备
-          this.productList = [
-            {
-              id: 1,
-              name: '八公山酱牛肉',
-              batch: '20251101',
-              category: 'meat',
-              productionDate: '2025-11-01',
-              status: 'online'
-            }
-          ]
+          this.productList = []
           this.total = this.productList.length
         })
         .finally(() => {
@@ -164,9 +132,7 @@ export default {
     resetForm() {
       this.searchForm = {
         name: '',
-        batch: '',
-        status: '',
-        category: ''
+        merchant_id: ''
       }
       this.getProductList()
     },
@@ -176,19 +142,27 @@ export default {
       this.multipleSelection = selection
     },
 
-    // 新增产品
+    // 新增商品
     handleCreate() {
       this.$router.push('/product/edit')
     },
 
-    // 编辑产品
+    // 编辑商品
     handleEdit(row) {
-      this.$router.push(`/product/edit?id=${row.id}`)
+      // 传递完整的商品数据到编辑页面，包括id
+      this.$router.push({
+        path: '/product/edit',
+        query: {
+          id: row.id,
+          // 使用JSON.stringify将对象转为字符串传递
+          productData: JSON.stringify(row)
+        }
+      })
     },
 
-    // 删除产品
+    // 删除商品
     handleDelete(row) {
-      this.$confirm(`确定要删除产品「${row.name}」吗？`, '提示', {
+      this.$confirm(`确定要删除商品「${row.name}」吗？`, '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
@@ -216,168 +190,36 @@ export default {
       })
     },
 
-    // 批量删除
+    // 批量删除 - 新API未明确支持，改为逐个删除
     handleBatchDelete() {
-      this.$confirm(`确定要删除选中的${this.multipleSelection.length}个产品吗？`, '提示', {
+      this.$confirm(`确定要删除选中的${this.multipleSelection.length}个商品吗？`, '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-      }).then(() => {
+      }).then(async() => {
         this.$loading({
           lock: true,
           text: '正在批量删除...',
           spinner: 'el-icon-loading'
         })
 
-        const ids = this.multipleSelection.map(item => item.id)
-        deleteProduct(ids)
-          .then(() => {
-            this.$message({ type: 'success', message: '批量删除成功' })
-            this.getProductList()
-            this.multipleSelection = []
-          })
-          .catch(error => {
-            console.error('批量删除失败:', error)
-            this.$message.error('批量删除失败，请稍后重试')
-          })
-          .finally(() => {
-            this.$loading().close()
-          })
+        try {
+          const ids = this.multipleSelection.map(item => item.id)
+          for (const id of ids) {
+            await deleteProduct(id)
+          }
+          this.$message({ type: 'success', message: '批量删除成功' })
+          this.getProductList()
+          this.multipleSelection = []
+        } catch (error) {
+          console.error('批量删除失败:', error)
+          this.$message.error('批量删除失败，请稍后重试')
+        } finally {
+          this.$loading().close()
+        }
       }).catch(() => {
         this.$message({ type: 'info', message: '已取消删除' })
       })
-    },
-
-    // 上架产品
-    handlePublish(row) {
-      this.$confirm(`确定要上架产品「${row.name}」吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.$loading({
-          lock: true,
-          text: '正在上架...',
-          spinner: 'el-icon-loading'
-        })
-
-        publishProduct(row.id)
-          .then(() => {
-            this.$message({ type: 'success', message: '上架成功' })
-            this.getProductList()
-          })
-          .catch(error => {
-            console.error('上架失败:', error)
-            this.$message.error('上架失败，请稍后重试')
-          })
-          .finally(() => {
-            this.$loading().close()
-          })
-      }).catch(() => {
-        this.$message({ type: 'info', message: '已取消上架' })
-      })
-    },
-
-    // 下架产品
-    handleOffline(row) {
-      this.$confirm(`确定要下架产品「${row.name}」吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.$loading({
-          lock: true,
-          text: '正在下架...',
-          spinner: 'el-icon-loading'
-        })
-
-        publishProduct(row.id, { status: 'unpublished' })
-          .then(() => {
-            this.$message({ type: 'success', message: '下架成功' })
-            this.getProductList()
-          })
-          .catch(error => {
-            console.error('下架失败:', error)
-            this.$message.error('下架失败，请稍后重试')
-          })
-          .finally(() => {
-            this.$loading().close()
-          })
-      }).catch(() => {
-        this.$message({ type: 'info', message: '已取消下架' })
-      })
-    },
-
-    // 批量上架
-    handleBatchPublish() {
-      this.$confirm(`确定要上架选中的${this.multipleSelection.length}个产品吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.$loading({
-          lock: true,
-          text: '正在批量上架...',
-          spinner: 'el-icon-loading'
-        })
-
-        const ids = this.multipleSelection.map(item => item.id)
-        publishProduct(ids)
-          .then(() => {
-            this.$message({ type: 'success', message: '批量上架成功' })
-            this.getProductList()
-            this.multipleSelection = []
-          })
-          .catch(error => {
-            console.error('批量上架失败:', error)
-            this.$message.error('批量上架失败，请稍后重试')
-          })
-          .finally(() => {
-            this.$loading().close()
-          })
-      }).catch(() => {
-        this.$message({ type: 'info', message: '已取消上架' })
-      })
-    },
-
-    // 批量下架
-    async handleBatchOffline() {
-      try {
-        await this.$confirm(`确定要下架选中的${this.multipleSelection.length}个产品吗？`, '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        })
-
-        this.$loading({
-          lock: true,
-          text: '正在批量下架...',
-          spinner: 'el-icon-loading'
-        })
-
-        const ids = this.multipleSelection.map(item => item.id)
-        for (const id of ids) {
-          await publishProduct(id, { status: 'unpublished' })
-        }
-
-        this.$message({ type: 'success', message: '批量下架成功' })
-        this.getProductList()
-        this.multipleSelection = []
-      } catch (error) {
-        if (error !== 'cancel') {
-          console.error('批量下架失败:', error)
-          this.$message.error('批量下架失败，请稍后重试')
-        } else {
-          this.$message({ type: 'info', message: '已取消下架' })
-        }
-      } finally {
-        try {
-          this.$loading().close()
-        } catch (e) {
-          // 忽略关闭loading时可能出现的错误
-          console.warn('关闭loading时出错:', e)
-        }
-      }
     },
 
     // 导出数据

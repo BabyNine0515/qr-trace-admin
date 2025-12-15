@@ -34,13 +34,38 @@ router.beforeEach(async(to, from, next) => {
     } else {
       const hasRoles = store.getters.roles && store.getters.roles.length > 0
       console.log('Has roles in store:', hasRoles)
+      console.log('Current user roles:', store.getters.roles)
       if (hasRoles) {
-        console.log('Current user roles:', store.getters.roles)
+        // 如果有角色但没有动态路由，重新生成路由
+        if (!store.state.permission.addRoutes || store.state.permission.addRoutes.length === 0) {
+          console.log('No dynamic routes, generating routes based on roles...')
+          try {
+            // generate accessible routes map based on roles
+            const accessRoutes = await store.dispatch('permission/generateRoutes', store.getters.roles)
+
+            // dynamically add accessible routes
+            router.addRoutes(accessRoutes)
+
+            // hack method to ensure that addRoutes is complete
+            // set the replace: true, so the navigation will not leave a history record
+            console.log('Routes added successfully, proceeding with replace navigation to:', to.path)
+            next({ ...to, replace: true })
+            return
+          } catch (error) {
+            console.error('Error in permission guard:', error)
+            // remove token and go to login page to re-login
+            await store.dispatch('user/resetToken')
+            Message.error(error.message || 'Has Error')
+            next(`/login?redirect=${to.path}`)
+            NProgress.done()
+            return
+          }
+        }
         console.log('Proceeding to route:', to.path)
         next()
       } else {
         try {
-          console.log('No roles found, fetching user info...')
+          console.log('No roles, fetching user info...')
           // get user info and roles
           const { roles } = await store.dispatch('user/getInfo')
           console.log('Got roles from user/getInfo:', roles)
@@ -61,7 +86,13 @@ router.beforeEach(async(to, from, next) => {
           // hack method to ensure that addRoutes is complete
           // set the replace: true, so the navigation will not leave a history record
           console.log('Proceeding with replace navigation to:', to.path)
-          next({ ...to, replace: true })
+
+          // 如果当前路由是根路径，重定向到仪表板
+          if (to.path === '/') {
+            next({ path: '/dashboard', replace: true })
+          } else {
+            next({ ...to, replace: true })
+          }
         } catch (error) {
           console.error('Error in permission guard:', error)
           // remove token and go to login page to re-login

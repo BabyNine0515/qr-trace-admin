@@ -47,7 +47,7 @@
 
       <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">Login</el-button>
 
-      <div style="position:relative">
+      <!-- <div style="position:relative">
         <div class="tips">
           <span>Username : admin</span>
           <span>Password : any</span>
@@ -60,7 +60,7 @@
         <el-button class="thirdparty-button" type="primary" @click="showDialog=true">
           Or connect with
         </el-button>
-      </div>
+      </div> -->
     </el-form>
 
     <el-dialog title="Or connect with" :visible.sync="showDialog">
@@ -97,8 +97,8 @@ export default {
     }
     return {
       loginForm: {
-        username: 'admin',
-        password: '111111'
+        username: '',
+        password: ''
       },
       loginRules: {
         username: [{ required: true, trigger: 'blur', validator: validateUsername }],
@@ -158,8 +158,24 @@ export default {
           this.loading = true
           this.$store.dispatch('user/login', this.loginForm)
             .then(() => {
-              this.$router.push({ path: this.redirect || '/', query: this.otherQuery })
-              this.loading = false
+              // 登录成功后，等待路由数据完全更新后再跳转
+              // 使用$nextTick确保Vuex中的路由数据已经更新到组件
+              this.$nextTick(() => {
+                // 再次确认路由数据已经加载
+                if (this.$store.state.permission.routes.length > this.$store.state.permission.addRoutes.length) {
+                  // 登录成功后重定向到产品列表或之前的页面
+                  const redirectPath = this.redirect || '/product/list'
+                  this.$router.push({ path: redirectPath, query: this.otherQuery })
+                  this.loading = false
+                } else {
+                  // 如果路由数据还没完全加载，再等待一下
+                  setTimeout(() => {
+                    const redirectPath = this.redirect || '/product/list'
+                    this.$router.push({ path: redirectPath, query: this.otherQuery })
+                    this.loading = false
+                  }, 100)
+                }
+              })
             })
             .catch(error => {
               this.loading = false

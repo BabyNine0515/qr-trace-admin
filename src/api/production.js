@@ -1,5 +1,41 @@
-// 生产信息管理相关API
+// 品牌故事相关API
 import request from '@/utils/request'
+
+// 创建品牌故事
+export const createBrandStory = (data) => {
+  return request({
+    url: '/brand-story',
+    method: 'post',
+    data
+  })
+}
+
+// 获取品牌故事列表
+export const getBrandStoryList = (params) => {
+  return request({
+    url: '/brand-story/list',
+    method: 'get',
+    params
+  })
+}
+
+// 修改品牌故事
+export const updateBrandStory = (data) => {
+  return request({
+    url: '/brand-story',
+    method: 'put',
+    data
+  })
+}
+
+// 删除品牌故事
+export const deleteBrandStory = (params) => {
+  return request({
+    url: '/brand-story',
+    method: 'delete',
+    params
+  })
+}
 
 // 获取上游生产信息列表
 export const getUpstreamInfoList = (params) => {

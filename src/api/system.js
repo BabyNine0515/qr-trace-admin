@@ -1,70 +1,39 @@
 // 系统设置管理相关API
 import request from '@/utils/request'
 
-// 获取用户列表
+// 获取管理员列表
 export const getUserList = (params) => {
   return request({
-    url: '/system/user/list',
+    url: '/admin/list',
     method: 'get',
     params
   })
 }
 
-// 获取用户详情
-export const getUserDetail = (id) => {
-  return request({
-    url: `/system/user/detail/${id}`,
-    method: 'get'
-  })
-}
-
-// 创建用户
+// 创建管理员
 export const createUser = (data) => {
   return request({
-    url: '/system/user/create',
+    url: '/admin',
     method: 'post',
     data
   })
 }
 
-// 更新用户
+// 更新管理员
 export const updateUser = (id, data) => {
   return request({
-    url: `/system/user/update/${id}`,
+    url: `/admin`,
     method: 'put',
     data
   })
 }
 
-// 删除用户
+// 删除管理员
 export const deleteUser = (id) => {
   return request({
-    url: `/system/user/delete/${id}`,
-    method: 'delete'
+    url: `/admin`,
+    method: 'delete',
+    params: { id }
   })
 }
 
-// 获取角色列表
-export const getRoleList = () => {
-  return request({
-    url: '/system/role/list',
-    method: 'get'
-  })
-}
-
-// 获取系统配置
-export const getSystemConfig = () => {
-  return request({
-    url: '/system/config',
-    method: 'get'
-  })
-}
-
-// 更新系统配置
-export const updateSystemConfig = (data) => {
-  return request({
-    url: '/system/config/update',
-    method: 'put',
-    data
-  })
-}

@@ -2,417 +2,156 @@
   <div class="app-container">
     <el-card>
       <el-breadcrumb separator="/" class="mb-4">
-        <el-breadcrumb-item><router-link to="/product/list">产品列表</router-link></el-breadcrumb-item>
-        <el-breadcrumb-item>{{ isEdit ? '编辑产品' : '新增产品' }}</el-breadcrumb-item>
+        <el-breadcrumb-item><router-link to="/product/list">商品列表</router-link></el-breadcrumb-item>
+        <el-breadcrumb-item>{{ isEdit ? '编辑商品' : '新增商品' }}</el-breadcrumb-item>
       </el-breadcrumb>
 
       <el-form ref="productForm" :model="productForm" :rules="rules" label-width="120px">
-        <!-- 产品基本信息 -->
+        <!-- 商品基本信息 -->
         <el-card shadow="never" class="mb-4">
           <template slot="header">
             <div class="card-header">
-              <span>产品基本信息</span>
+              <span>商品基本信息</span>
             </div>
           </template>
 
-          <!-- <el-form-item label="产品码" prop="productCode">
-            <el-input v-model="productForm.productCode" placeholder="请输入产品码（厂家码+品类码+日期+流水）" />
-            <div class="el-form-item__help">必填，≤32字符，唯一索引</div>
-          </el-form-item> -->
-
-          <!-- 产品名称（多语言） -->
-          <el-form-item label="产品名称" prop="productName">
-            <el-tabs type="border-card">
-              <el-tab-pane label="中文">
-                <el-input v-model="productForm.productName.zh" placeholder="请输入产品中文名称" maxlength="30" show-word-limit />
-              </el-tab-pane>
-              <el-tab-pane label="英文">
-                <el-input v-model="productForm.productName.en" placeholder="请输入产品英文名称" maxlength="30" show-word-limit />
-              </el-tab-pane>
-            </el-tabs>
-            <div class="el-form-item__help">必填，每语言≤30字</div>
+          <el-form-item label="所属商户" prop="merchant_id">
+            <el-select v-model="productForm.merchant_id" placeholder="请选择商户" style="width: 100%;">
+              <el-option
+                v-for="merchant in merchantList"
+                :key="merchant.id"
+                :label="merchant.name"
+                :value="merchant.id"
+              />
+            </el-select>
+            <div class="el-form-item__help">必填</div>
           </el-form-item>
 
-          <!-- 产品副标题（多语言） -->
-          <el-form-item label="产品副标题" prop="productSubTitle">
-            <el-tabs type="border-card">
-              <el-tab-pane label="中文">
-                <el-input v-model="productForm.productSubTitle.zh" placeholder="请输入产品中文副标题" maxlength="60" show-word-limit />
-              </el-tab-pane>
-              <el-tab-pane label="英文">
-                <el-input v-model="productForm.productSubTitle.en" placeholder="请输入产品英文副标题" maxlength="60" show-word-limit />
-              </el-tab-pane>
-            </el-tabs>
-            <div class="el-form-item__help">选填，每语言≤60字</div>
+          <el-form-item label="商品名称" prop="name">
+            <el-input v-model="productForm.name" placeholder="请输入商品名称" maxlength="100" show-word-limit />
+            <div class="el-form-item__help">必填，≤100字</div>
           </el-form-item>
 
-          <el-row :gutter="20">
-            <el-col :span="12">
-              <!-- 保质期（多语言） -->
-              <el-form-item label="保质期" prop="shelfLife">
-                <el-tabs type="border-card" class="mini-tabs">
-                  <el-tab-pane label="中文">
-                    <el-input v-model="productForm.shelfLife.zh" placeholder="例如：270天" maxlength="20" show-word-limit />
-                  </el-tab-pane>
-                  <el-tab-pane label="英文">
-                    <el-input v-model="productForm.shelfLife.en" placeholder="例如：270 days" maxlength="20" show-word-limit />
-                  </el-tab-pane>
-                </el-tabs>
-                <div class="el-form-item__help">必填，每语言≤20字</div>
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <!-- 净含量（多语言） -->
-              <el-form-item label="净含量" prop="netWeight">
-                <el-tabs type="border-card" class="mini-tabs">
-                  <el-tab-pane label="中文">
-                    <el-input v-model="productForm.netWeight.zh" placeholder="例如：150g/袋" maxlength="20" show-word-limit />
-                  </el-tab-pane>
-                  <el-tab-pane label="英文">
-                    <el-input v-model="productForm.netWeight.en" placeholder="例如：150g/bag" maxlength="20" show-word-limit />
-                  </el-tab-pane>
-                </el-tabs>
-                <div class="el-form-item__help">必填，每语言≤20字</div>
-              </el-form-item>
-            </el-col>
-          </el-row>
+          <el-form-item label="商品名称（中文）" prop="name_ch">
+            <el-input v-model="productForm.name_ch" placeholder="请输入商品名称（中文）" maxlength="100" show-word-limit />
+            <div class="el-form-item__help">必填，≤100字</div>
+          </el-form-item>
+
+          <el-form-item label="商品名称（英文）" prop="name_en">
+            <el-input v-model="productForm.name_en" placeholder="请输入商品名称（英文）" maxlength="100" show-word-limit />
+            <div class="el-form-item__help">必填，≤100字</div>
+          </el-form-item>
+
+          <el-form-item label="商品认证" prop="certification">
+            <el-input v-model="productForm.certification" placeholder="请输入商品认证" maxlength="200" show-word-limit />
+            <div class="el-form-item__help">必填，≤200字</div>
+          </el-form-item>
+
+          <el-form-item label="上市时间" prop="release_date">
+            <el-date-picker
+              v-model="productForm.release_date"
+              type="datetime"
+              placeholder="选择上市时间"
+              style="width: 100%;"
+            />
+            <div class="el-form-item__help">必填</div>
+          </el-form-item>
+
+          <el-form-item label="商品产地" prop="place_of_origin">
+            <el-input v-model="productForm.place_of_origin" placeholder="请输入商品产地" maxlength="50" show-word-limit />
+            <div class="el-form-item__help">必填，≤50字</div>
+          </el-form-item>
+
+          <el-form-item label="配料表" prop="ingredient_list">
+            <el-input v-model="productForm.ingredient_list" placeholder="请输入配料表" maxlength="500" show-word-limit />
+            <div class="el-form-item__help">必填，≤500字</div>
+          </el-form-item>
+
+          <el-form-item label="规格" prop="specifications">
+            <el-input v-model="productForm.specifications" placeholder="请输入规格" maxlength="100" show-word-limit />
+            <div class="el-form-item__help">必填，≤100字</div>
+          </el-form-item>
+
+          <el-form-item label="包装" prop="packaging">
+            <el-input v-model="productForm.packaging" placeholder="请输入包装" maxlength="100" show-word-limit />
+            <div class="el-form-item__help">必填，≤100字</div>
+          </el-form-item>
+
+          <el-form-item label="商品卖点" prop="selling_point">
+            <el-input
+              v-model="productForm.selling_point"
+              placeholder="请输入商品卖点"
+              maxlength="500"
+              show-word-limit
+              type="textarea"
+              rows="3"
+            />
+            <div class="el-form-item__help">必填，≤500字</div>
+          </el-form-item>
+
+          <el-form-item label="存储方式" prop="storage_method">
+            <el-input v-model="productForm.storage_method" placeholder="请输入存储方式" maxlength="200" show-word-limit />
+            <div class="el-form-item__help">必填，≤200字</div>
+          </el-form-item>
+
+          <el-form-item label="保质期" prop="shelf_life">
+            <el-input v-model="productForm.shelf_life" placeholder="请输入保质期" maxlength="50" show-word-limit />
+            <div class="el-form-item__help">必填，≤50字</div>
+          </el-form-item>
+
+          <el-form-item label="商品条码" prop="barcode">
+            <el-input v-model="productForm.barcode" placeholder="请输入商品条码" maxlength="50" show-word-limit />
+            <div class="el-form-item__help">必填，≤50字</div>
+          </el-form-item>
+
+          <el-form-item label="品牌" prop="brand">
+            <el-input v-model="productForm.brand" placeholder="请输入品牌" maxlength="100" show-word-limit />
+            <div class="el-form-item__help">必填，≤100字</div>
+          </el-form-item>
+
+          <el-form-item label="使用方法" prop="directions_for_use">
+            <el-input
+              v-model="productForm.directions_for_use"
+              placeholder="请输入使用方法"
+              maxlength="500"
+              show-word-limit
+              type="textarea"
+              rows="3"
+            />
+            <div class="el-form-item__help">必填，≤500字</div>
+          </el-form-item>
         </el-card>
 
-        <!-- 产品图片管理 -->
+        <!-- 商品图片管理 -->
         <el-card shadow="never" class="mb-4">
           <template slot="header">
             <div class="card-header">
-              <span>产品图片管理</span>
+              <span>商品图片管理</span>
             </div>
           </template>
 
-          <!-- 产品主图 -->
-          <el-form-item label="产品主图" prop="productImage">
+          <!-- 商品图片 -->
+          <el-form-item label="商品图片" prop="goods_images">
             <el-upload
               action="#"
               list-type="picture-card"
-              :file-list="productImageList"
+              :file-list="goodsImagesList"
               :on-preview="handleImagePreview"
-              :on-remove="handleProductImageRemove"
-              :on-change="handleProductImageChange"
-              :limit="1"
+              :on-remove="handleImageRemove"
+              :on-change="handleImageChange"
+              :limit="8"
               accept="image/jpeg,image/png,image/webp"
-              :before-upload="beforeProductImageUpload"
+              :before-upload="beforeImageUpload"
               :auto-upload="false"
             >
               <i class="el-icon-plus" />
             </el-upload>
-            <div class="el-form-item__help">必填，jpg/png/webp格式，≤800KB，建议比例4:3</div>
-          </el-form-item>
-
-          <!-- 产品图库 -->
-          <el-form-item label="产品图库" prop="productGallery">
-            <el-upload
-              action="#"
-              list-type="picture-card"
-              :file-list="productGalleryList"
-              :on-preview="handleImagePreview"
-              :on-remove="handleGalleryImageRemove"
-              :on-change="handleGalleryImageChange"
-              :limit="6"
-              accept="image/jpeg,image/png,image/webp"
-              :before-upload="beforeGalleryImageUpload"
-              :auto-upload="false"
-            >
-              <i class="el-icon-plus" />
-            </el-upload>
-            <div class="el-form-item__help">必填，2~6张，单张≤500KB</div>
+            <div class="el-form-item__help">必填，jpg/png/webp格式，≤2MB</div>
           </el-form-item>
 
           <el-dialog :visible.sync="dialogVisible" append-to-body>
             <img width="100%" :src="dialogImageUrl" alt="">
           </el-dialog>
-        </el-card>
-
-        <!-- 产品详情网格 -->
-        <el-card shadow="never" class="mb-4">
-          <template slot="header">
-            <div class="card-header">
-              <span>产品基础信息网格</span>
-              <el-button type="primary" size="small" @click="addProductDetail">添加信息项</el-button>
-            </div>
-          </template>
-
-          <div v-if="productForm.productDetails.length === 0" class="empty-tip">暂无信息项，请点击上方按钮添加</div>
-
-          <div v-for="(detail, index) in productForm.productDetails" :key="index" class="detail-item">
-            <el-divider>信息项 {{ index + 1 }}</el-divider>
-            <el-row :gutter="20">
-              <el-col :span="12">
-                <el-form-item label="标签（中文）">
-                  <el-input v-model="detail.labelKey.zh" placeholder="请输入标签中文名称" maxlength="20" show-word-limit />
-                </el-form-item>
-              </el-col>
-              <el-col :span="12">
-                <el-form-item label="标签（英文）">
-                  <el-input v-model="detail.labelKey.en" placeholder="请输入标签英文名称" maxlength="20" show-word-limit />
-                </el-form-item>
-              </el-col>
-            </el-row>
-            <el-row :gutter="20">
-              <el-col :span="12">
-                <el-form-item label="值（中文）">
-                  <el-input v-model="detail.value.zh" placeholder="请输入值中文内容" maxlength="50" show-word-limit />
-                </el-form-item>
-              </el-col>
-              <el-col :span="12">
-                <el-form-item label="值（英文）">
-                  <el-input v-model="detail.value.en" placeholder="请输入值英文内容" maxlength="50" show-word-limit />
-                </el-form-item>
-              </el-col>
-            </el-row>
-            <el-form-item label="点击类型">
-              <el-select v-model="detail.clickType" placeholder="请选择点击类型">
-                <el-option label="无" value="none" />
-                <el-option label="报告" value="report" />
-              </el-select>
-            </el-form-item>
-            <el-button type="danger" size="small" @click="removeProductDetail(index)">删除信息项</el-button>
-          </div>
-          <div class="el-form-item__help">必填，最多添加12个信息项</div>
-        </el-card>
-
-        <!-- 检验报告 -->
-        <el-card shadow="never" class="mb-4">
-          <template slot="header">
-            <div class="card-header">
-              <span>检验报告</span>
-            </div>
-          </template>
-
-          <el-upload
-            action="#"
-            list-type="picture-card"
-            :file-list="inspectionReportsList"
-            :on-preview="handleReportPreview"
-            :on-remove="handleReportRemove"
-            :on-change="handleReportChange"
-            :limit="8"
-            accept="image/jpeg,image/png,image/pdf"
-            :before-upload="beforeReportUpload"
-            :auto-upload="false"
-          >
-            <i class="el-icon-plus" />
-          </el-upload>
-          <div class="el-form-item__help">必填，2~8张，单张≤600KB，建议统一命名为report_1.jpg等</div>
-        </el-card>
-
-        <!-- 公司信息 -->
-        <el-card shadow="never" class="mb-4">
-          <template slot="header">
-            <div class="card-header">
-              <span>公司信息</span>
-            </div>
-          </template>
-
-          <!-- 公司名称（多语言） -->
-          <el-form-item label="公司名称" prop="companyName">
-            <el-tabs type="border-card">
-              <el-tab-pane label="中文">
-                <el-input v-model="productForm.companyName.zh" placeholder="请输入公司中文名称" maxlength="50" show-word-limit />
-              </el-tab-pane>
-              <el-tab-pane label="英文">
-                <el-input v-model="productForm.companyName.en" placeholder="请输入公司英文名称" maxlength="50" show-word-limit />
-              </el-tab-pane>
-            </el-tabs>
-            <div class="el-form-item__help">必填，与营业执照一致</div>
-          </el-form-item>
-
-          <el-form-item label="统一社会信用码" prop="socialCreditCode">
-            <el-input v-model="productForm.socialCreditCode" placeholder="请输入18位统一社会信用码" />
-            <div class="el-form-item__help">必填，18位，需正则校验</div>
-          </el-form-item>
-
-          <el-form-item label="法定代表人" prop="legalRepresentative">
-            <el-input v-model="productForm.legalRepresentative" placeholder="请输入法定代表人姓名" maxlength="20" show-word-limit />
-            <div class="el-form-item__help">选填，≤20字</div>
-          </el-form-item>
-
-          <el-row :gutter="20">
-            <el-col :span="12">
-              <el-form-item label="联系电话" prop="companyPhone">
-                <el-input v-model="productForm.companyPhone" placeholder="请输入联系电话，多段用/分隔" maxlength="40" show-word-limit />
-                <div class="el-form-item__help">必填，≤40字</div>
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="官网" prop="companyWebsite">
-                <el-input v-model="productForm.companyWebsite" placeholder="请输入官网域名，不含http://" maxlength="100" show-word-limit />
-                <div class="el-form-item__help">选填，例：www.xxx.com</div>
-              </el-form-item>
-            </el-col>
-          </el-row>
-
-          <el-form-item label="邮箱" prop="companyEmail">
-            <el-input v-model="productForm.companyEmail" placeholder="请输入邮箱，多个用;分隔" maxlength="200" show-word-limit />
-            <div class="el-form-item__help">选填，例：a@xx.com;b@xx.com</div>
-          </el-form-item>
-        </el-card>
-
-        <!-- 企业资质 -->
-        <el-card shadow="never" class="mb-4">
-          <template slot="header">
-            <div class="card-header">
-              <span>企业资质</span>
-            </div>
-          </template>
-
-          <el-upload
-            action="#"
-            list-type="picture-card"
-            :file-list="companyQualificationsList"
-            :on-preview="handleQualificationPreview"
-            :on-remove="handleQualificationRemove"
-            :on-change="handleQualificationChange"
-            :limit="6"
-            accept="image/jpeg,image/png,image/pdf"
-            :before-upload="beforeQualificationUpload"
-            :auto-upload="false"
-          >
-            <i class="el-icon-plus" />
-          </el-upload>
-          <div class="el-form-item__help">必填，1~6张，单张≤500KB，建议命名为qual_1.jpg等</div>
-        </el-card>
-
-        <!-- 上游生产信息 -->
-        <el-card shadow="never" class="mb-4">
-          <template slot="header">
-            <div class="card-header">
-              <span>上游生产信息</span>
-              <el-button type="primary" size="small" @click="addUpstreamInfo">添加信息项</el-button>
-            </div>
-          </template>
-
-          <div v-if="productForm.upstreamInfo.length === 0" class="empty-tip">暂无信息项，请点击上方按钮添加</div>
-
-          <div v-for="(info, index) in productForm.upstreamInfo" :key="index" class="detail-item">
-            <el-divider>信息项 {{ index + 1 }}</el-divider>
-            <el-row :gutter="20">
-              <el-col :span="12">
-                <el-form-item label="标签（中文）">
-                  <el-input v-model="info.labelKey.zh" placeholder="请输入标签中文名称" maxlength="20" show-word-limit />
-                </el-form-item>
-              </el-col>
-              <el-col :span="12">
-                <el-form-item label="标签（英文）">
-                  <el-input v-model="info.labelKey.en" placeholder="请输入标签英文名称" maxlength="20" show-word-limit />
-                </el-form-item>
-              </el-col>
-            </el-row>
-            <el-row :gutter="20">
-              <el-col :span="12">
-                <el-form-item label="值（中文）">
-                  <el-input v-model="info.value.zh" placeholder="请输入值中文内容" maxlength="50" show-word-limit />
-                </el-form-item>
-              </el-col>
-              <el-col :span="12">
-                <el-form-item label="值（英文）">
-                  <el-input v-model="info.value.en" placeholder="请输入值英文内容" maxlength="50" show-word-limit />
-                </el-form-item>
-              </el-col>
-            </el-row>
-            <el-form-item label="点击类型">
-              <el-select v-model="info.clickType" placeholder="请选择点击类型">
-                <el-option label="无" value="none" />
-                <el-option label="报告" value="report" />
-              </el-select>
-            </el-form-item>
-            <el-button type="danger" size="small" @click="removeUpstreamInfo(index)">删除信息项</el-button>
-          </div>
-          <div class="el-form-item__help">必填，格式与产品详情网格相同</div>
-        </el-card>
-
-        <!-- 产品视频 -->
-        <el-card shadow="never" class="mb-4">
-          <template slot="header">
-            <div class="card-header">
-              <span>产品视频</span>
-            </div>
-          </template>
-
-          <div v-if="productForm.videoUrl" class="video-preview mb-4">
-            <video :src="productForm.videoUrl" controls style="max-width: 100%;" />
-            <el-button type="danger" size="small" class="mt-2" @click="removeVideo">删除视频</el-button>
-          </div>
-
-          <el-upload
-            action="#"
-            :before-upload="beforeVideoUpload"
-            :on-change="handleVideoChange"
-            accept="video/mp4"
-            :limit="1"
-            :on-exceed="handleVideoExceed"
-            :auto-upload="false"
-          >
-            <el-button size="small" type="primary">上传视频</el-button>
-            <div slot="tip" class="el-upload__tip">
-              请上传MP4格式的视频文件，大小不超过30MB，分辨率≤1080p，时长≤60秒
-            </div>
-          </el-upload>
-        </el-card>
-
-        <!-- 公司宣传媒体 -->
-        <el-card shadow="never" class="mb-4">
-          <template slot="header">
-            <div class="card-header">
-              <span>公司宣传媒体</span>
-            </div>
-          </template>
-
-          <el-form-item label="媒体类型" prop="companyMediaType">
-            <el-radio-group v-model="productForm.companyMediaType">
-              <el-radio label="video">视频</el-radio>
-              <el-radio label="image">图片</el-radio>
-            </el-radio-group>
-          </el-form-item>
-
-          <el-form-item :label="productForm.companyMediaType === 'video' ? '宣传视频' : '宣传图片'" prop="companyMediaUrl">
-            <div v-if="productForm.companyMediaUrl" class="company-media-preview mb-4">
-              <video v-if="productForm.companyMediaType === 'video'" :src="productForm.companyMediaUrl" controls style="max-width: 100%;" />
-              <img v-else :src="productForm.companyMediaUrl" style="max-width: 100%;">
-              <el-button type="danger" size="small" class="mt-2" @click="removeCompanyMedia">删除媒体</el-button>
-            </div>
-
-            <el-upload
-              action="#"
-              :before-upload="beforeCompanyMediaUpload"
-              :on-change="handleCompanyMediaChange"
-              :accept="productForm.companyMediaType === 'video' ? 'video/mp4' : 'image/jpeg,image/png,image/webp'"
-              :limit="1"
-              :auto-upload="false"
-            >
-              <el-button size="small" type="primary">上传{{ productForm.companyMediaType === 'video' ? '视频' : '图片' }}</el-button>
-              <div slot="tip" class="el-upload__tip">
-                {{ productForm.companyMediaType === 'video' ? '请上传MP4格式的视频文件，大小不超过20MB' : '请上传图片文件，大小不超过800KB' }}
-              </div>
-            </el-upload>
-          </el-form-item>
-
-          <el-form-item v-if="productForm.companyMediaType === 'video'" label="视频封面" prop="companyMediaPoster">
-            <div v-if="productForm.companyMediaPoster" class="poster-preview mb-4">
-              <img :src="productForm.companyMediaPoster" style="max-width: 200px;">
-              <el-button type="danger" size="small" class="mt-2" @click="removeCompanyMediaPoster">删除封面</el-button>
-            </div>
-
-            <el-upload
-              action="#"
-              :before-upload="beforeCompanyMediaPosterUpload"
-              :on-change="handleCompanyMediaPosterChange"
-              accept="image/jpeg,image/png,image/webp"
-              :auto-upload="false"
-              :limit="1"
-            >
-              <el-button size="small" type="primary">上传封面</el-button>
-              <div slot="tip" class="el-upload__tip">
-                请上传图片文件，大小不超过300KB
-              </div>
-            </el-upload>
-          </el-form-item>
         </el-card>
 
         <!-- 操作按钮 -->
@@ -426,80 +165,103 @@
 </template>
 
 <script>
-import { getProductDetail, createProduct, updateProduct } from '@/api/product'
-import { uploadImage, uploadVideo, uploadFile } from '@/api/media'
+import { createProduct, updateProduct } from '@/api/product'
+import { getMerchantList } from '@/api/company'
+import { uploadImage } from '@/api/media'
 
 export default {
   name: 'ProductEdit',
   data() {
     return {
+      merchantList: [],
       isEdit: false,
       productId: null,
       productForm: {
-        productCode: '',
-        productName: {
-          zh: '',
-          en: ''
-        },
-        productSubTitle: {
-          zh: '',
-          en: ''
-        },
-        shelfLife: {
-          zh: '',
-          en: ''
-        },
-        netWeight: {
-          zh: '',
-          en: ''
-        },
-        productDetails: [],
-        companyName: {
-          zh: '',
-          en: ''
-        },
-        socialCreditCode: '',
-        legalRepresentative: '',
-        companyPhone: '',
-        companyWebsite: '',
-        companyEmail: '',
-        upstreamInfo: [],
-        videoUrl: '',
-        companyMediaType: 'image',
-        companyMediaUrl: '',
-        companyMediaPoster: ''
+        // id: '',
+        merchant_id: undefined,
+        name: '',
+        name_ch: '',
+        name_en: '',
+        certification: '',
+        release_date: '',
+        place_of_origin: '',
+        ingredient_list: '',
+        specifications: '',
+        packaging: '',
+        selling_point: '',
+        storage_method: '',
+        shelf_life: '',
+        barcode: '',
+        brand: '',
+        directions_for_use: '',
+        goods_images: []
       },
       rules: {
-        productCode: [
-          { required: true, message: '请输入产品码', trigger: 'blur' },
-          { max: 32, message: '产品码长度不能超过32个字符', trigger: 'blur' }
+        merchant_id: [
+          { required: true, message: '请输入商户ID', trigger: 'blur' }
         ],
-        productName: [
-          { required: true, validator: this.validateI18nRequired, trigger: 'blur' }
+        name: [
+          { required: true, message: '请输入商品名称', trigger: 'blur' },
+          { max: 100, message: '商品名称长度不能超过100个字符', trigger: 'blur' }
         ],
-        shelfLife: [
-          { required: true, validator: this.validateI18nRequired, trigger: 'blur' }
+        name_ch: [
+          { required: true, message: '请输入商品名称（中文）', trigger: 'blur' },
+          { max: 100, message: '商品名称（中文）长度不能超过100个字符', trigger: 'blur' }
         ],
-        netWeight: [
-          { required: true, validator: this.validateI18nRequired, trigger: 'blur' }
+        name_en: [
+          { required: true, message: '请输入商品名称（英文）', trigger: 'blur' },
+          { max: 100, message: '商品名称（英文）长度不能超过100个字符', trigger: 'blur' }
         ],
-        companyName: [
-          { required: true, validator: this.validateI18nRequired, trigger: 'blur' }
+        certification: [
+          { required: true, message: '请输入商品认证', trigger: 'blur' },
+          { max: 200, message: '商品认证长度不能超过200个字符', trigger: 'blur' }
         ],
-        socialCreditCode: [
-          { required: true, message: '请输入统一社会信用码', trigger: 'blur' },
-          { pattern: /^[A-Z0-9]{18}$/, message: '统一社会信用码格式不正确', trigger: 'blur' }
+        release_date: [
+          { required: true, message: '请选择上市时间', trigger: 'change' }
         ],
-        companyPhone: [
-          { required: true, message: '请输入联系电话', trigger: 'blur' },
-          { max: 40, message: '联系电话长度不能超过40个字符', trigger: 'blur' }
+        place_of_origin: [
+          { required: true, message: '请输入商品产地', trigger: 'blur' },
+          { max: 50, message: '商品产地长度不能超过50个字符', trigger: 'blur' }
+        ],
+        ingredient_list: [
+          { required: true, message: '请输入配料表', trigger: 'blur' },
+          { max: 500, message: '配料表长度不能超过500个字符', trigger: 'blur' }
+        ],
+        specifications: [
+          { required: true, message: '请输入规格', trigger: 'blur' },
+          { max: 100, message: '规格长度不能超过100个字符', trigger: 'blur' }
+        ],
+        packaging: [
+          { required: true, message: '请输入包装', trigger: 'blur' },
+          { max: 100, message: '包装长度不能超过100个字符', trigger: 'blur' }
+        ],
+        selling_point: [
+          { required: true, message: '请输入产品卖点', trigger: 'blur' },
+          { max: 500, message: '产品卖点长度不能超过500个字符', trigger: 'blur' }
+        ],
+        storage_method: [
+          { required: true, message: '请输入存储方式', trigger: 'blur' },
+          { max: 200, message: '存储方式长度不能超过200个字符', trigger: 'blur' }
+        ],
+        shelf_life: [
+          { required: true, message: '请输入保质期', trigger: 'blur' },
+          { max: 50, message: '保质期长度不能超过50个字符', trigger: 'blur' }
+        ],
+        barcode: [
+          { required: true, message: '请输入商品条码', trigger: 'blur' },
+          { max: 50, message: '商品条码长度不能超过50个字符', trigger: 'blur' }
+        ],
+        brand: [
+          { required: true, message: '请输入品牌', trigger: 'blur' },
+          { max: 100, message: '品牌长度不能超过100个字符', trigger: 'blur' }
+        ],
+        directions_for_use: [
+          { required: true, message: '请输入使用方法', trigger: 'blur' },
+          { max: 500, message: '使用方法长度不能超过500个字符', trigger: 'blur' }
         ]
       },
       loading: false,
-      productImageList: [],
-      productGalleryList: [],
-      inspectionReportsList: [],
-      companyQualificationsList: [],
+      goodsImagesList: [],
       dialogVisible: false,
       dialogImageUrl: ''
     }
@@ -510,142 +272,90 @@ export default {
     if (id) {
       this.isEdit = true
       this.productId = id
-      this.loadProductData()
+
+      // 检查是否传递了完整的商品数据
+      if (this.$route.query.productData) {
+        try {
+          // 解析传递的商品数据
+          const productData = JSON.parse(this.$route.query.productData)
+          // 赋值基本商品信息
+          this.productForm = {
+            id: productData.id,
+            merchant_id: productData.merchant_id,
+            name: productData.name,
+            name_ch: productData.name_ch,
+            name_en: productData.name_en,
+            certification: productData.certification,
+            release_date: productData.release_date,
+            place_of_origin: productData.place_of_origin,
+            ingredient_list: productData.ingredient_list,
+            specifications: productData.specifications,
+            packaging: productData.packaging,
+            selling_point: productData.selling_point,
+            storage_method: productData.storage_method,
+            shelf_life: productData.shelf_life,
+            barcode: productData.barcode,
+            brand: productData.brand,
+            directions_for_use: productData.directions_for_use
+          }
+          // 处理商品图片
+          if (productData.goods_images && Array.isArray(productData.goods_images)) {
+            this.goodsImagesList = productData.goods_images.map(item => {
+              // 检查item是cid还是完整URL
+              let cid, fullUrl
+              if (item.startsWith('http')) {
+                // 如果是完整URL，提取cid
+                fullUrl = item
+                cid = item.split('/').pop()
+              } else {
+                // 如果是cid，构造完整URL
+                cid = item
+                fullUrl = `https://dev.xiangtaihou-food.com/ipfs/${cid}`
+              }
+              return {
+                name: `商品图片${Math.random().toString(36).substr(2, 9)}`, // 添加name属性，否则上传组件会显示undefined
+                url: fullUrl, // 预览使用完整URL
+                cid: cid, // 保存cid以便后续使用
+                status: 'success', // 设置状态为success，表示已上传
+                uid: Date.now() + Math.random().toString(36).substr(2, 9) // 添加唯一标识
+              }
+            })
+          } else {
+            // 如果没有商品图片，初始化空数组
+            this.goodsImagesList = []
+          }
+        } catch (error) {
+          console.error('解析商品数据失败:', error)
+          this.$message.error('加载商品数据失败，请重试')
+        }
+      }
     }
   },
+  mounted() {
+    getMerchantList({ merchant_type: 1 }).then(res => {
+      this.merchantList = res.data.merchant_record || []
+      console.log('商户列表11111111111111111111111:', this.merchantList)
+    })
+  },
   methods: {
-    // 验证i18n对象是否至少有一个语言必填
-    validateI18nRequired(rule, value, callback) {
-      if (!value || (!value.zh && !value.en)) {
-        callback(new Error('请至少填写一个语言版本'))
-      } else {
-        callback()
-      }
-    },
-
-    // 验证图片数量
-    validateImageCount(rule, value, callback) {
-      if (value && value.length < 2) {
-        callback(new Error('至少上传2张图片'))
-      } else {
-        callback()
-      }
-    },
-
-    // 加载产品数据
-    async loadProductData() {
-      try {
-        this.loading = true
-        const response = await getProductDetail(this.productId)
-        const { data } = response
-
-        this.productForm = {
-          productCode: data.productCode,
-          productName: data.productName || { zh: '', en: '' },
-          productSubTitle: data.productSubTitle || { zh: '', en: '' },
-          shelfLife: data.shelfLife || { zh: '', en: '' },
-          netWeight: data.netWeight || { zh: '', en: '' },
-          productDetails: data.productDetails || [],
-          companyName: data.companyName || { zh: '', en: '' },
-          socialCreditCode: data.socialCreditCode,
-          legalRepresentative: data.legalRepresentative || '',
-          companyPhone: data.companyPhone,
-          companyWebsite: data.companyWebsite || '',
-          companyEmail: data.companyEmail || '',
-          upstreamInfo: data.upstreamInfo || [],
-          videoUrl: data.videoUrl || '',
-          companyMediaType: data.companyMediaType || 'image',
-          companyMediaUrl: data.companyMediaUrl || '',
-          companyMediaPoster: data.companyMediaPoster || ''
-        }
-
-        // 加载产品主图
-        if (data.productImage) {
-          this.productImageList = [{ url: data.productImage }]
-        }
-
-        // 加载产品图库
-        if (data.productGallery && Array.isArray(data.productGallery)) {
-          this.productGalleryList = data.productGallery.map(url => ({ url }))
-        }
-
-        // 加载检验报告
-        if (data.inspectionReports && Array.isArray(data.inspectionReports)) {
-          this.inspectionReportsList = data.inspectionReports.map(url => ({ url }))
-        }
-
-        // 加载企业资质
-        if (data.companyQualifications && Array.isArray(data.companyQualifications)) {
-          this.companyQualificationsList = data.companyQualifications.map(url => ({ url }))
-        }
-      } catch (error) {
-        this.$message.error('加载产品数据失败: ' + (error.message || '未知错误'))
-        console.error('加载产品数据失败:', error)
-      } finally {
-        this.loading = false
-      }
-    },
-
-    // 添加产品详情项
-    addProductDetail() {
-      if (this.productForm.productDetails.length >= 12) {
-        this.$message.warning('最多只能添加12个信息项')
-        return
-      }
-      this.productForm.productDetails.push({
-        labelKey: { zh: '', en: '' },
-        value: { zh: '', en: '' },
-        clickType: 'none'
-      })
-    },
-
-    // 删除产品详情项
-    removeProductDetail(index) {
-      this.productForm.productDetails.splice(index, 1)
-    },
-
-    // 添加上游信息项
-    addUpstreamInfo() {
-      this.productForm.upstreamInfo.push({
-        labelKey: { zh: '', en: '' },
-        value: { zh: '', en: '' },
-        clickType: 'none'
-      })
-    },
-
-    // 删除上游信息项
-    removeUpstreamInfo(index) {
-      this.productForm.upstreamInfo.splice(index, 1)
-    },
-
     // 图片预览
     handleImagePreview(file) {
-      this.dialogImageUrl = file.url
+      console.log('111111111111111111', file)
+      // 确保使用正确的图片URL格式
+      let previewUrl = file.url
+      // 如果文件有cid属性，构造完整的IPFS路径
+      if (file.cid) {
+        previewUrl = `https://dev.xiangtaihou-food.com/ipfs/${file.cid}`
+      } else if (file.response && file.response.data && file.response.data.cid) {
+        // 处理已上传但可能url属性未更新的情况
+        previewUrl = `https://dev.xiangtaihou-food.com/ipfs/${file.response.data.cid}`
+      }
+      this.dialogImageUrl = previewUrl
       this.dialogVisible = true
     },
 
-    // 报告预览
-    handleReportPreview(file) {
-      if (file.url.endsWith('.pdf')) {
-        window.open(file.url, '_blank')
-      } else {
-        this.dialogImageUrl = file.url
-        this.dialogVisible = true
-      }
-    },
-
-    // 资质预览
-    handleQualificationPreview(file) {
-      if (file.url.endsWith('.pdf')) {
-        window.open(file.url, '_blank')
-      } else {
-        this.dialogImageUrl = file.url
-        this.dialogVisible = true
-      }
-    },
-
-    // 处理产品主图上传
-    async beforeProductImageUpload(file) {
+    // 图片上传前验证
+    async beforeImageUpload(file) {
       const isImage = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/webp'
       const isLt800K = file.size / 1024 < 800
 
@@ -658,389 +368,152 @@ export default {
       return isImage && isLt800K
     },
 
-    async handleProductImageChange(file, fileList) {
-      if (file.raw) { // 当选择文件后立即上传
+    // 图片上传处理
+    async handleImageChange(file, fileList) {
+      // 只处理用户新选择的文件（status为ready且有raw文件），防止重复上传
+      if (file.raw && file.status === 'ready' && !file.uploading) {
         try {
+          // 标记文件正在上传，防止重复上传
+          const uploadingFile = Object.assign({}, file, { uploading: true })
+          const tempFileList = [...fileList]
+          const index = tempFileList.findIndex(f => f.uid === file.uid)
+          if (index !== -1) {
+            tempFileList[index] = uploadingFile
+          }
+          this.goodsImagesList = tempFileList
+
+          // 验证图片格式和大小
+          const isImage = file.raw.type === 'image/jpeg' || file.raw.type === 'image/png' || file.raw.type === 'image/webp'
+          const isLt800K = file.raw.size / 1024 < 800
+
+          if (!isImage || !isLt800K) {
+            this.$message.error(isImage ? '上传图片大小不能超过 800KB!' : '只能上传JPG、PNG或WEBP格式的图片!')
+            // 移除不符合要求的文件
+            this.goodsImagesList = fileList.filter(f => f.uid !== file.uid)
+            return
+          }
+
+          // 创建FormData并上传图片
           const formData = new FormData()
           formData.append('file', file.raw)
-          formData.append('type', 'productImage')
+          formData.append('type', 'goodsImage')
+
+          // 调用上传接口
           const response = await uploadImage(formData)
-          // 创建新对象避免直接修改file属性导致的竞态条件
-          const updatedFile = Object.assign({}, file, {
-            url: response.data.url,
-            status: 'success'
-          })
-          const updatedFileList = [...fileList]
-          const index = updatedFileList.findIndex(f => f.uid === file.uid)
-          if (index !== -1) {
-            updatedFileList[index] = updatedFile
+
+          // 检查响应数据结构
+          if (!response) {
+            throw new Error('上传请求失败，未获取到响应')
           }
-          this.productImageList = updatedFileList
+          if (!response.data) {
+            throw new Error('上传请求失败，响应数据为空')
+          }
+          if (!response.data.cid) {
+            throw new Error('上传接口返回数据格式不正确，缺少cid字段')
+          }
+          // 获取上传成功返回的cid
+          const cid = response.data.cid
+
+          // 构造完整的预览URL
+          const previewUrl = `https://dev.xiangtaihou-food.com/ipfs/${cid}`
+
+          // 更新文件对象，添加cid和预览URL
+          const updatedFile = Object.assign({}, file, {
+            url: previewUrl, // 使用完整的IPFS URL进行预览
+            cid: cid, // 存储cid用于后续表单提交
+            status: 'success',
+            uploading: false
+          })
+
+          // 更新文件列表
+          const updatedFileList = [...fileList]
+          const updateIndex = updatedFileList.findIndex(f => f.uid === file.uid)
+          if (updateIndex !== -1) {
+            updatedFileList[updateIndex] = updatedFile
+          }
+
+          this.goodsImagesList = updatedFileList
+          this.$message.success('图片上传成功')
         } catch (error) {
+          console.error('图片上传失败:', error)
           this.$message.error('图片上传失败: ' + (error.message || '未知错误'))
-          const updatedFile = Object.assign({}, file, {
-            status: 'error'
-          })
-          const updatedFileList = [...fileList]
-          const index = updatedFileList.findIndex(f => f.uid === file.uid)
-          if (index !== -1) {
-            updatedFileList[index] = updatedFile
-          }
-          this.productImageList = updatedFileList
+          // 移除上传失败的文件
+          this.goodsImagesList = fileList.filter(f => f.uid !== file.uid)
         }
-      } else {
-        this.productImageList = fileList
+      } else if (file.status !== 'ready') {
+        // 更新文件列表（处理删除等操作，但跳过ready状态的文件以避免重复上传）
+        this.goodsImagesList = fileList
       }
     },
 
-    handleProductImageRemove(file, fileList) {
-      this.productImageList = fileList
+    // 取消
+    handleCancel() {
+      this.$router.push('/product/list')
     },
 
-    // 处理图库图片上传
-    async beforeGalleryImageUpload(file) {
-      const isImage = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/webp'
-      const isLt500K = file.size / 1024 < 500
-
-      if (!isImage) {
-        this.$message.error('只能上传JPG、PNG或WEBP格式的图片!')
-      }
-      if (!isLt500K) {
-        this.$message.error('上传图片大小不能超过 500KB!')
-      }
-      return isImage && isLt500K
-    },
-
-    async handleGalleryImageChange(file, fileList) {
-      if (file.raw) { // 当选择文件后立即上传
-        try {
-          const formData = new FormData()
-          formData.append('file', file.raw)
-          formData.append('type', 'gallery')
-          const response = await uploadImage(formData)
-          // 创建新对象避免直接修改file属性导致的竞态条件
-          const updatedFile = Object.assign({}, file, {
-            url: response.data.url,
-            status: 'success'
-          })
-          const updatedFileList = [...fileList]
-          const index = updatedFileList.findIndex(f => f.uid === file.uid)
-          if (index !== -1) {
-            updatedFileList[index] = updatedFile
-          }
-          this.productGalleryList = updatedFileList
-        } catch (error) {
-          this.$message.error('图片上传失败: ' + (error.message || '未知错误'))
-          const updatedFile = Object.assign({}, file, {
-            status: 'error'
-          })
-          const updatedFileList = [...fileList]
-          const index = updatedFileList.findIndex(f => f.uid === file.uid)
-          if (index !== -1) {
-            updatedFileList[index] = updatedFile
-          }
-          this.productGalleryList = updatedFileList
-        }
-      } else {
-        this.productGalleryList = fileList
-      }
-    },
-
-    handleGalleryImageRemove(file, fileList) {
-      this.productGalleryList = fileList
-    },
-
-    // 处理报告上传
-    async beforeReportUpload(file) {
-      const isImage = file.type === 'image/jpeg' || file.type === 'image/png'
-      const isPdf = file.type === 'application/pdf'
-      const isLt600K = file.size / 1024 < 600
-
-      if (!isImage && !isPdf) {
-        this.$message.error('只能上传JPG、PNG或PDF格式的文件!')
-      }
-      if (!isLt600K) {
-        this.$message.error('上传文件大小不能超过 600KB!')
-      }
-      return (isImage || isPdf) && isLt600K
-    },
-
-    async handleReportChange(file, fileList) {
-      if (file.raw) { // 当选择文件后立即上传
-        try {
-          const formData = new FormData()
-          formData.append('file', file.raw)
-          formData.append('type', 'report')
-          const response = await uploadFile(formData)
-          // 创建新对象避免直接修改file属性导致的竞态条件
-          const updatedFile = Object.assign({}, file, {
-            url: response.data.url,
-            status: 'success'
-          })
-          const updatedFileList = [...fileList]
-          const index = updatedFileList.findIndex(f => f.uid === file.uid)
-          if (index !== -1) {
-            updatedFileList[index] = updatedFile
-          }
-          this.inspectionReportsList = updatedFileList
-        } catch (error) {
-          this.$message.error('文件上传失败: ' + (error.message || '未知错误'))
-          const updatedFile = Object.assign({}, file, {
-            status: 'error'
-          })
-          const updatedFileList = [...fileList]
-          const index = updatedFileList.findIndex(f => f.uid === file.uid)
-          if (index !== -1) {
-            updatedFileList[index] = updatedFile
-          }
-          this.inspectionReportsList = updatedFileList
-        }
-      } else {
-        this.inspectionReportsList = fileList
-      }
-    },
-
-    handleReportRemove(file, fileList) {
-      this.inspectionReportsList = fileList
-    },
-
-    // 处理企业资质上传
-    async beforeQualificationUpload(file) {
-      const isImage = file.type === 'image/jpeg' || file.type === 'image/png'
-      const isPdf = file.type === 'application/pdf'
-      const isLt500K = file.size / 1024 < 500
-
-      if (!isImage && !isPdf) {
-        this.$message.error('只能上传JPG、PNG或PDF格式的文件!')
-      }
-      if (!isLt500K) {
-        this.$message.error('上传文件大小不能超过 500KB!')
-      }
-      return (isImage || isPdf) && isLt500K
-    },
-
-    async handleQualificationChange(file, fileList) {
-      if (file.raw) { // 当选择文件后立即上传
-        try {
-          const formData = new FormData()
-          formData.append('file', file.raw)
-          formData.append('type', 'qualification')
-          const response = await uploadFile(formData)
-          // 创建新对象避免直接修改file属性导致的竞态条件
-          const updatedFile = Object.assign({}, file, {
-            url: response.data.url,
-            status: 'success'
-          })
-          const updatedFileList = [...fileList]
-          const index = updatedFileList.findIndex(f => f.uid === file.uid)
-          if (index !== -1) {
-            updatedFileList[index] = updatedFile
-          }
-          this.companyQualificationsList = updatedFileList
-        } catch (error) {
-          this.$message.error('文件上传失败: ' + (error.message || '未知错误'))
-          const updatedFile = Object.assign({}, file, {
-            status: 'error'
-          })
-          const updatedFileList = [...fileList]
-          const index = updatedFileList.findIndex(f => f.uid === file.uid)
-          if (index !== -1) {
-            updatedFileList[index] = updatedFile
-          }
-          this.companyQualificationsList = updatedFileList
-        }
-      } else {
-        this.companyQualificationsList = fileList
-      }
-    },
-
-    handleQualificationRemove(file, fileList) {
-      this.companyQualificationsList = fileList
-    },
-
-    // 视频上传前
-    beforeVideoUpload(file) {
-      const isVideo = file.type === 'video/mp4'
-      const isLt30M = file.size / 1024 / 1024 < 30
-
-      if (!isVideo) {
-        this.$message.error('只能上传MP4格式的视频文件!')
-      }
-      if (!isLt30M) {
-        this.$message.error('上传视频大小不能超过 30MB!')
-      }
-      return isVideo && isLt30M
-    },
-
-    // 视频上传处理
-    async handleVideoChange(file) {
-      if (file.raw) { // 当选择文件后立即上传
-        try {
-          const formData = new FormData()
-          formData.append('file', file.raw)
-          formData.append('type', 'productVideo')
-          const result = await uploadVideo(formData)
-          this.productForm.videoUrl = result.data.url
-          this.$message({ type: 'success', message: '视频上传成功' })
-        } catch (error) {
-          this.$message.error('视频上传失败: ' + (error.message || '未知错误'))
-        }
-      }
-    },
-
-    // 视频上传超过数量限制
-    handleVideoExceed(files, fileList) {
-      this.$message.warning(`当前限制上传 1 个视频`)
-    },
-
-    // 删除视频
-    removeVideo() {
-      this.productForm.videoUrl = ''
-    },
-
-    // 公司宣传媒体上传
-    async beforeCompanyMediaUpload(file) {
-      if (this.productForm.companyMediaType === 'video') {
-        const isVideo = file.type === 'video/mp4'
-        const isLt20M = file.size / 1024 / 1024 < 20
-        if (!isVideo) {
-          this.$message.error('只能上传MP4格式的视频文件!')
-        }
-        if (!isLt20M) {
-          this.$message.error('上传视频大小不能超过 20MB!')
-        }
-        return isVideo && isLt20M
-      } else {
-        const isImage = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/webp'
-        const isLt800K = file.size / 1024 < 800
-        if (!isImage) {
-          this.$message.error('只能上传JPG、PNG或WEBP格式的图片!')
-        }
-        if (!isLt800K) {
-          this.$message.error('上传图片大小不能超过 800KB!')
-        }
-        return isImage && isLt800K
-      }
-    },
-
-    async handleCompanyMediaChange(file) {
-      if (file.raw) { // 当选择文件后立即上传
-        try {
-          const formData = new FormData()
-          formData.append('file', file.raw)
-          formData.append('type', this.productForm.companyMediaType === 'video' ? 'companyVideo' : 'companyImage')
-          const result = await (this.productForm.companyMediaType === 'video' ? uploadVideo(formData) : uploadImage(formData))
-          this.productForm.companyMediaUrl = result.data.url
-          this.$message({ type: 'success', message: '媒体上传成功' })
-        } catch (error) {
-          this.$message.error('媒体上传失败: ' + (error.message || '未知错误'))
-        }
-      }
-    },
-
-    // 删除公司宣传媒体
-    removeCompanyMedia() {
-      this.productForm.companyMediaUrl = ''
-    },
-
-    // 公司宣传视频封面上传
-    async beforeCompanyMediaPosterUpload(file) {
-      const isImage = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/webp'
-      const isLt300K = file.size / 1024 < 300
-
-      if (!isImage) {
-        this.$message.error('只能上传JPG、PNG或WEBP格式的图片!')
-      }
-      if (!isLt300K) {
-        this.$message.error('上传图片大小不能超过 300KB!')
-      }
-      return isImage && isLt300K
-    },
-
-    async handleCompanyMediaPosterChange(file) {
-      if (file.raw) { // 当选择文件后立即上传
-        try {
-          const formData = new FormData()
-          formData.append('file', file.raw)
-          formData.append('type', 'videoPoster')
-          const result = await uploadImage(formData)
-          this.productForm.companyMediaPoster = result.data.url
-          this.$message({ type: 'success', message: '封面上传成功' })
-        } catch (error) {
-          this.$message.error('封面上传失败: ' + (error.message || '未知错误'))
-        }
-      }
-    },
-
-    // 删除公司宣传视频封面
-    removeCompanyMediaPoster() {
-      this.productForm.companyMediaPoster = ''
-    },
-
-    // 提交表单
+    // 表单提交
     async handleSubmit() {
-      // 验证图片数量
-      if (this.productImageList.length === 0) {
-        this.$message.error('请上传产品主图')
-        return
-      }
-
-      if (this.productGalleryList.length < 2) {
-        this.$message.error('产品图库至少需要2张图片')
-        return
-      }
-
-      if (this.inspectionReportsList.length < 2) {
-        this.$message.error('检验报告至少需要2张')
-        return
-      }
-
-      if (this.companyQualificationsList.length === 0) {
-        this.$message.error('请至少上传1张企业资质')
-        return
-      }
-
-      // 表单验证
       this.$refs.productForm.validate(async(valid) => {
         if (valid) {
           try {
             this.loading = true
 
             // 准备提交数据
-            const submitData = {
-              ...this.productForm,
-              productImage: this.productImageList[0].url,
-              productGallery: this.productGalleryList.map(img => img.url),
-              inspectionReports: this.inspectionReportsList.map(report => report.url),
-              companyQualifications: this.companyQualificationsList.map(qual => qual.url)
-            }
+            const submitData = { ...this.productForm }
+
+            // 从goodsImagesList中提取所有cid到goods_images数组
+            submitData.goods_images = this.goodsImagesList
+              .filter(file => file.status === 'success' && file.cid)
+              .map(file => file.cid)
 
             if (this.isEdit) {
-              // 编辑产品
-              await updateProduct(this.productId, submitData)
-              this.$message({ type: 'success', message: '编辑成功' })
+              // 编辑模式
+              await updateProduct(submitData)
             } else {
-              // 新增产品
+              // 新增模式
               await createProduct(submitData)
-              this.$message({ type: 'success', message: '添加成功' })
             }
+            // 响应拦截器已经处理了错误，只有成功的响应才会到这里
+            // 直接显示成功消息并执行相应操作
+            this.$message.success(this.isEdit ? '商品编辑成功' : '商品新增成功')
 
-            this.$router.push('/product/list')
+            if (this.isEdit) {
+              // 编辑模式：重定向到商品列表
+              this.$router.push('/product/list')
+            } else {
+              // 新增模式：清空表单，允许继续添加新商品
+              this.productForm = {
+                merchant_id: undefined,
+                name: '',
+                name_ch: '',
+                name_en: '',
+                certification: '',
+                release_date: '',
+                place_of_origin: '',
+                ingredient_list: '',
+                specifications: '',
+                packaging: '',
+                selling_point: '',
+                storage_method: '',
+                shelf_life: '',
+                barcode: '',
+                brand: '',
+                directions_for_use: '',
+                goods_images: []
+              }
+              // 清空商品图片列表
+              this.goodsImagesList = []
+              // 重置表单验证
+              this.$refs.productForm.resetFields()
+            }
           } catch (error) {
-            this.$message.error((this.isEdit ? '编辑' : '添加') + '失败: ' + (error.message || '未知错误'))
-            console.error((this.isEdit ? '编辑' : '添加') + '产品失败:', error)
+            console.error((this.isEdit ? '编辑' : '添加') + '商品失败:', error)
+            this.$message.error((this.isEdit ? '编辑' : '添加') + '商品失败: ' + (error.message || '未知错误'))
           } finally {
             this.loading = false
           }
-        } else {
-          return false
         }
       })
-    },
-
-    // 取消
-    handleCancel() {
-      this.$router.push('/product/list')
     }
   }
 }

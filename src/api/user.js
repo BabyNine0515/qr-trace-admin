@@ -3,17 +3,18 @@ import request from '@/utils/request'
 // 用户登录
 export function login(data) {
   return request({
-    url: '/user/login',
+    url: '/login',
     method: 'post',
     data
   })
 }
 
-// 获取用户信息
-export function getInfo() {
+// 修改密码
+export function updatePassword(data) {
   return request({
-    url: '/user/info',
-    method: 'get'
+    url: '/change-password',
+    method: 'post',
+    data
   })
 }
 

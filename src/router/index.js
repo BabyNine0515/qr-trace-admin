@@ -91,7 +91,21 @@ export const constantRoutes = [
   //     }
   //   ]
   // },
-  // 根路径重定向到产品列表
+  // 注释掉仪表盘路由
+  // {
+  //   path: '/',
+  //   component: Layout,
+  //   redirect: '/dashboard',
+  //   children: [
+  //     {
+  //       path: 'dashboard',
+  //       component: () => import('@/views/dashboard/index'),
+  //       name: 'Dashboard',
+  //       meta: { title: '仪表板', icon: 'dashboard', affix: true }
+  //     }
+  //   ]
+  // },
+  // 根路径重定向到产品列表页面
   {
     path: '/',
     component: Layout,
@@ -260,7 +274,7 @@ export const asyncRoutes = [
         component: () => import('@/views/product/status'),
         name: 'ProductStatus',
         meta: {
-          title: '产品发布/下架管理',
+          title: '产品批次管理',
           icon: 'el-icon-switch-button'
         }
       }
@@ -268,49 +282,49 @@ export const asyncRoutes = [
   },
 
   // 媒体资源管理 - 作为独立顶级菜单
-  {
-    path: '/media',
-    component: Layout,
-    redirect: '/media/image',
-    alwaysShow: true,
-    name: 'Media',
-    meta: {
-      title: '媒体资源管理',
-      icon: 'el-icon-picture',
-      roles: ['admin', 'editor']
-    },
-    children: [
-      {
-        path: 'image',
-        component: () => import('@/views/media/image'),
-        name: 'ImageLibrary',
-        meta: {
-          title: '图片库管理',
-          icon: 'el-icon-picture-outline'
-        }
-      },
-      {
-        path: 'video',
-        component: () => import('@/views/media/video'),
-        name: 'VideoLibrary',
-        meta: {
-          title: '视频库管理',
-          icon: 'el-icon-video-play'
-        }
-      },
-      {
-        path: 'upload',
-        component: () => import('@/views/media/upload'),
-        name: 'MediaUpload',
-        meta: {
-          title: '媒体文件上传',
-          icon: 'el-icon-upload'
-        }
-      }
-    ]
-  },
+  // {
+  //   path: '/media',
+  //   component: Layout,
+  //   redirect: '/media/image',
+  //   alwaysShow: true,
+  //   name: 'Media',
+  //   meta: {
+  //     title: '媒体资源管理',
+  //     icon: 'el-icon-picture',
+  //     roles: ['admin', 'editor']
+  //   },
+  //   children: [
+  //     {
+  //       path: 'image',
+  //       component: () => import('@/views/media/image'),
+  //       name: 'ImageLibrary',
+  //       meta: {
+  //         title: '图片库管理',
+  //         icon: 'el-icon-picture-outline'
+  //       }
+  //     },
+  //     {
+  //       path: 'video',
+  //       component: () => import('@/views/media/video'),
+  //       name: 'VideoLibrary',
+  //       meta: {
+  //         title: '视频库管理',
+  //         icon: 'el-icon-video-play'
+  //       }
+  //     },
+  //     {
+  //       path: 'upload',
+  //       component: () => import('@/views/media/upload'),
+  //       name: 'MediaUpload',
+  //       meta: {
+  //         title: '媒体文件上传',
+  //         icon: 'el-icon-upload'
+  //       }
+  //     }
+  //   ]
+  // },
 
-  // 公司信息管理 - 作为独立顶级菜单
+  // 商户管理 - 作为独立顶级菜单
   {
     path: '/company',
     component: Layout,
@@ -318,7 +332,7 @@ export const asyncRoutes = [
     alwaysShow: true,
     name: 'Company',
     meta: {
-      title: '公司信息管理',
+      title: '商户管理',
       icon: 'el-icon-office-building',
       roles: ['admin', 'editor']
     },
@@ -328,28 +342,28 @@ export const asyncRoutes = [
         component: () => import('@/views/company/basic-info.vue'),
         name: 'CompanyBasic',
         meta: {
-          title: '公司基本信息',
+          title: '商户基本信息',
           icon: 'el-icon-info'
         }
-      },
-      {
-        path: 'qualifications',
-        component: () => import('@/views/company/qualifications.vue'),
-        name: 'CompanyQualification',
-        meta: {
-          title: '公司资质管理',
-          icon: 'el-icon-document-checked'
-        }
-      },
-      {
-        path: 'promotion-media',
-        component: () => import('@/views/company/promotion-media.vue'),
-        name: 'CompanyPromotion',
-        meta: {
-          title: '公司宣传媒体',
-          icon: 'el-icon-guide'
-        }
       }
+      // {
+      //   path: 'qualifications',
+      //   component: () => import('@/views/company/qualifications.vue'),
+      //   name: 'CompanyQualification',
+      //   meta: {
+      //     title: '商户资质管理',
+      //     icon: 'el-icon-document-checked'
+      //   }
+      // },
+      // {
+      //   path: 'promotion-media',
+      //   component: () => import('@/views/company/promotion-media.vue'),
+      //   name: 'CompanyPromotion',
+      //   meta: {
+      //     title: '商户宣传媒体',
+      //     icon: 'el-icon-guide'
+      //   }
+      // }
     ]
   },
 
@@ -361,7 +375,7 @@ export const asyncRoutes = [
     alwaysShow: true,
     name: 'Production',
     meta: {
-      title: '生产信息管理',
+      title: '品牌故事管理',
       icon: 'el-icon-s-tools',
       roles: ['admin', 'editor']
     },
@@ -371,23 +385,23 @@ export const asyncRoutes = [
         component: () => import('@/views/production/upstream-info.vue'),
         name: 'UpstreamInfo',
         meta: {
-          title: '上游生产信息',
+          title: '品牌故事',
           icon: 'el-icon-link'
         }
-      },
-      {
-        path: 'factory-management',
-        component: () => import('@/views/production/factory-management.vue'),
-        name: 'FactoryManagement',
-        meta: {
-          title: '生产厂家管理',
-          icon: 'el-icon-office-building'
-        }
       }
+      // {
+      //   path: 'factory-management',
+      //   component: () => import('@/views/production/factory-management.vue'),
+      //   name: 'FactoryManagement',
+      //   meta: {
+      //     title: '生产厂家管理',
+      //     icon: 'el-icon-office-building'
+      //   }
+      // }
     ]
   },
 
-  // 质量信息管理 - 作为独立顶级菜单
+  // 检验报告管理 - 作为独立顶级菜单
   {
     path: '/quality',
     component: Layout,
@@ -395,7 +409,7 @@ export const asyncRoutes = [
     alwaysShow: true,
     name: 'Quality',
     meta: {
-      title: '质量信息管理',
+      title: '检验信息管理',
       icon: 'el-icon-s-claim',
       roles: ['admin', 'editor']
     },
@@ -433,16 +447,16 @@ export const asyncRoutes = [
           title: '评论列表',
           icon: 'el-icon-s-order'
         }
-      },
-      {
-        path: 'comment-approval',
-        component: () => import('@/views/comment/comment-approval.vue'),
-        name: 'CommentApproval',
-        meta: {
-          title: '评论审核',
-          icon: 'el-icon-check'
-        }
       }
+      // {
+      //   path: 'comment-approval',
+      //   component: () => import('@/views/comment/comment-approval.vue'),
+      //   name: 'CommentApproval',
+      //   meta: {
+      //     title: '评论审核',
+      //     icon: 'el-icon-check'
+      //   }
+      // }
     ]
   },
 
@@ -467,16 +481,16 @@ export const asyncRoutes = [
           title: '用户权限管理',
           icon: 'el-icon-user'
         }
-      },
-      {
-        path: 'config',
-        component: () => import('@/views/system/config'),
-        name: 'SystemConfig',
-        meta: {
-          title: '系统配置',
-          icon: 'el-icon-s-tools'
-        }
       }
+      // {
+      //   path: 'config',
+      //   component: () => import('@/views/system/config'),
+      //   name: 'SystemConfig',
+      //   meta: {
+      //     title: '系统配置',
+      //     icon: 'el-icon-s-tools'
+      //   }
+      // }
     ]
   },
   // 暂时移除权限管理菜单，后续根据需求添加

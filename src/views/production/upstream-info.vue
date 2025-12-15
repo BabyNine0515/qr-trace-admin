@@ -1,81 +1,52 @@
 <template>
   <div class="app-container">
     <el-card>
-      <el-breadcrumb separator="/" class="mb-4">
+      <el-breadcrumb separator="/" class="mb-4" style="margin-bottom: 20px;">
         <el-breadcrumb-item>生产信息管理</el-breadcrumb-item>
-        <el-breadcrumb-item>上游生产信息</el-breadcrumb-item>
+        <el-breadcrumb-item>品牌故事管理</el-breadcrumb-item>
       </el-breadcrumb>
 
       <!-- 操作按钮 -->
       <div class="operation-bar mb-4">
-        <el-button type="primary" @click="addUpstreamInfo">添加上游信息</el-button>
-        <el-button type="danger" :disabled="selectedRows.length === 0" @click="batchDelete">
+        <el-button type="primary" @click="addBrandStory">添加品牌故事</el-button>
+        <!-- <el-button type="danger" :disabled="selectedRows.length === 0" @click="batchDelete">
           批量删除 ({{ selectedRows.length }})
-        </el-button>
+        </el-button> -->
       </div>
-
-      <!-- 搜索和筛选 -->
-      <el-form :inline="true" class="search-form mb-4">
-        <el-form-item label="信息名称">
-          <el-input v-model="searchParams.name" placeholder="请输入信息名称" style="width: 200px;" />
-        </el-form-item>
-        <el-form-item label="供应商">
-          <el-input v-model="searchParams.supplier" placeholder="请输入供应商名称" style="width: 200px;" />
-        </el-form-item>
-        <el-form-item label="信息类型">
-          <el-select v-model="searchParams.type" placeholder="全部">
-            <el-option label="全部" value="" />
-            <el-option label="原料信息" value="raw_material" />
-            <el-option label="加工过程" value="processing" />
-            <el-option label="包装信息" value="packaging" />
-            <el-option label="其他" value="other" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="search">搜索</el-button>
-          <el-button @click="resetSearch">重置</el-button>
-        </el-form-item>
-      </el-form>
 
       <!-- 数据表格 -->
       <el-table
         v-loading="loading"
-        :data="filteredUpstreamList"
+        :data="brandStoryList"
         style="width: 100%"
         row-key="id"
         @selection-change="handleSelectionChange"
         @row-click="handleRowClick"
       >
         <el-table-column type="selection" width="55" align="center" />
-        <el-table-column prop="name" label="信息名称" min-width="180" />
-        <el-table-column prop="type" label="信息类型" width="120" align="center">
+        <el-table-column prop="id" label="ID" width="150" />
+        <el-table-column prop="image" label="品牌图片" width="120" align="center">
           <template slot-scope="scope">
-            <el-tag :type="getTypeTagType(scope.row.type)">
-              {{ getTypeName(scope.row.type) }}
-            </el-tag>
+            <el-image
+              :src="getFullImageUrl(scope.row.image)"
+              fit="cover"
+              style="width: 80px; height: 60px;"
+            />
           </template>
         </el-table-column>
-        <el-table-column prop="supplier" label="供应商" width="180" />
-        <el-table-column prop="location" label="产地" width="150" />
-        <el-table-column prop="productionDate" label="生产日期" width="150" />
-        <el-table-column prop="relatedProducts" label="关联产品" min-width="200">
+        <el-table-column prop="text" label="品牌故事" min-width="300">
           <template slot-scope="scope">
-            <el-tag v-for="product in scope.row.relatedProducts" :key="product.id" size="small" class="mr-1 mb-1">
-              {{ product.name }}
-            </el-tag>
+            <div class="story-text">{{ scope.row.text }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="mediaCount" label="媒体数量" width="100" align="center">
+        <el-table-column prop="sort" label="排序" width="100" align="center" />
+        <el-table-column prop="created_at" label="创建时间" width="180" />
+        <el-table-column prop="updated_at" label="更新时间" width="180" />
+        <el-table-column label="操作" width="250" fixed="right">
           <template slot-scope="scope">
-            <span>{{ scope.row.mediaCount || 0 }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="createdTime" label="创建时间" width="180" />
-        <el-table-column label="操作" width="200" fixed="right">
-          <template slot-scope="scope">
-            <el-button size="mini" @click="viewUpstreamInfo(scope.row)">查看</el-button>
-            <el-button size="mini" type="primary" @click="editUpstreamInfo(scope.row)">编辑</el-button>
-            <el-button size="mini" type="danger" @click="deleteUpstreamInfo(scope.row.id)">删除</el-button>
+            <el-button size="mini" @click="viewBrandStory(scope.row)">查看</el-button>
+            <el-button size="mini" type="primary" @click="editBrandStory(scope.row)">编辑</el-button>
+            <el-button size="mini" type="danger" @click="deleteBrandStory(scope.row.id)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -83,7 +54,7 @@
       <!-- 分页 -->
       <div class="pagination-container">
         <el-pagination
-          :total="filteredUpstreamList.length"
+          :total="totalCount"
           :page-sizes="[10, 20, 50, 100]"
           :page-size="pageSize"
           :current-page="currentPage"
@@ -94,434 +65,183 @@
       </div>
     </el-card>
 
-    <!-- 添加/编辑上游信息对话框 -->
+    <!-- 添加/编辑品牌故事对话框 -->
     <el-dialog
       :visible.sync="dialogVisible"
-      :title="isEditing ? '编辑上游信息' : '添加上游信息'"
+      :title="isEditing ? '编辑品牌故事' : '添加品牌故事'"
       :width="'800px'"
     >
       <el-form
-        ref="upstreamForm"
-        :model="upstreamForm"
+        ref="brandStoryForm"
+        :model="brandStoryForm"
         :rules="formRules"
         label-width="120px"
       >
-        <el-form-item label="信息名称" prop="name">
-          <el-input v-model="upstreamForm.name" placeholder="请输入信息名称" maxlength="100" show-word-limit />
-        </el-form-item>
-
-        <el-form-item label="信息类型" prop="type">
-          <el-select v-model="upstreamForm.type" placeholder="请选择信息类型">
-            <el-option label="原料信息" value="raw_material" />
-            <el-option label="加工过程" value="processing" />
-            <el-option label="包装信息" value="packaging" />
-            <el-option label="其他" value="other" />
+        <el-form-item label="所属商户" prop="merchant_id">
+          <el-select v-model="brandStoryForm.merchant_id" placeholder="请选择商户" style="width: 100%;">
+            <el-option
+              v-for="merchant in merchantList"
+              :key="merchant.id"
+              :label="merchant.name"
+              :value="merchant.id"
+            />
           </el-select>
         </el-form-item>
 
-        <el-form-item label="供应商" prop="supplier">
-          <el-input v-model="upstreamForm.supplier" placeholder="请输入供应商名称" maxlength="100" show-word-limit />
+        <el-form-item label="品牌图片" prop="image">
+          <el-upload
+            class="image-uploader"
+            action="#"
+            list-type="picture-card"
+            :file-list="imageFileList"
+            :on-preview="handleImagePreview"
+            :on-remove="handleImageRemove"
+            :on-change="handleImageChange"
+            :limit="1"
+            accept="image/jpeg,image/png,image/webp"
+            :before-upload="beforeImageUpload"
+            :auto-upload="false"
+          >
+            <i class="el-icon-plus" />
+          </el-upload>
+          <div class="el-upload__tip">支持jpg、jpeg、png、webp格式图片，单张不超过800KB</div>
         </el-form-item>
 
-        <el-form-item label="供应商联系方式">
-          <el-input v-model="upstreamForm.supplierContact" placeholder="请输入供应商联系方式" maxlength="100" />
-        </el-form-item>
+        <el-dialog :visible.sync="dialogVisibleImage" append-to-body>
+          <img width="100%" :src="dialogImageUrl" alt="">
+        </el-dialog>
 
-        <el-form-item label="产地">
-          <el-input v-model="upstreamForm.location" placeholder="请输入产地" maxlength="100" />
-        </el-form-item>
-
-        <el-form-item label="生产日期">
-          <el-date-picker
-            v-model="upstreamForm.productionDate"
-            type="date"
-            placeholder="选择生产日期"
-            style="width: 100%;"
-          />
-        </el-form-item>
-
-        <el-form-item label="信息描述" prop="description">
+        <el-form-item label="品牌故事" prop="text">
           <el-input
-            v-model="upstreamForm.description"
+            v-model="brandStoryForm.text"
             type="textarea"
-            :rows="4"
-            placeholder="请输入详细描述"
-            maxlength="500"
+            :rows="6"
+            placeholder="请输入品牌故事内容"
+            maxlength="1000"
             show-word-limit
           />
         </el-form-item>
 
-        <el-form-item label="关联产品" prop="relatedProducts">
-          <el-select
-            v-model="upstreamForm.relatedProducts"
-            multiple
-            placeholder="请选择关联产品"
-            value-key="id"
-            :filterable="true"
-            :remote="true"
-            :remote-method="remoteSearchProducts"
-            loading-text="搜索中"
-            no-data-text="没有找到匹配的产品"
-          >
-            <el-option
-              v-for="product in availableProducts"
-              :key="product.id"
-              :label="product.name"
-              :value="product"
-            />
-          </el-select>
-          <div class="form-hint">输入产品名称关键词进行搜索</div>
-        </el-form-item>
-
-        <el-form-item label="媒体文件">
-          <el-upload
-            class="media-uploader"
-            action="#"
-            :on-success="handleMediaUploadSuccess"
-            :before-upload="beforeMediaUpload"
-            :file-list="tempMediaFiles"
-            :multiple="true"
-            :auto-upload="false"
-            list-type="picture-card"
-            :limit="10"
-            :on-exceed="handleExceed"
-          >
-            <i class="el-icon-plus" />
-            <div class="el-upload__text">点击上传或拖拽文件到此处</div>
-            <div slot="tip" class="el-upload__tip">
-              支持jpg、jpeg、png、gif、mp4等格式，单个文件不超过50MB，最多上传10个文件
-            </div>
-          </el-upload>
+        <el-form-item label="排序" prop="sort">
+          <el-input-number v-model="brandStoryForm.sort" :min="0" :max="100" placeholder="请输入排序值" />
         </el-form-item>
       </el-form>
 
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveUpstreamInfo">保存</el-button>
+        <el-button type="primary" @click="saveBrandStory">保存</el-button>
       </div>
     </el-dialog>
 
-    <!-- 查看上游信息对话框 -->
+    <!-- 查看品牌故事对话框 -->
     <el-dialog
       :visible.sync="viewDialogVisible"
-      title="查看上游信息"
+      title="查看品牌故事"
       :width="'800px'"
     >
       <el-descriptions border :column="2">
-        <el-descriptions-item label="信息名称">{{ viewingUpstream.name }}</el-descriptions-item>
-        <el-descriptions-item label="信息类型">
-          <el-tag :type="getTypeTagType(viewingUpstream.type)">
-            {{ getTypeName(viewingUpstream.type) }}
-          </el-tag>
+        <el-descriptions-item label="ID">{{ viewingBrandStory.id }}</el-descriptions-item>
+        <el-descriptions-item label="商⼾ID">{{ viewingBrandStory.merchant_id }}</el-descriptions-item>
+        <el-descriptions-item label="品牌图片">
+          <el-image :src="getFullImageUrl(viewingBrandStory.image)" fit="cover" style="width: 200px; height: 150px;" />
         </el-descriptions-item>
-        <el-descriptions-item label="供应商">{{ viewingUpstream.supplier }}</el-descriptions-item>
-        <el-descriptions-item label="供应商联系方式">{{ viewingUpstream.supplierContact || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="产地">{{ viewingUpstream.location || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="生产日期">{{ viewingUpstream.productionDate || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="创建时间">{{ viewingUpstream.createdTime || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="更新时间">{{ viewingUpstream.updatedTime || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="信息描述" :span="2">{{ viewingUpstream.description || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="关联产品" :span="2">
-          <div class="related-products">
-            <el-tag v-for="product in viewingUpstream.relatedProducts" :key="product.id" size="small" class="mr-1 mb-1">
-              {{ product.name }}
-            </el-tag>
-          </div>
-        </el-descriptions-item>
+        <el-descriptions-item label="排序">{{ viewingBrandStory.sort }}</el-descriptions-item>
+        <el-descriptions-item label="创建时间">{{ viewingBrandStory.created_at || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="更新时间">{{ viewingBrandStory.updated_at || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="品牌故事" :span="2">{{ viewingBrandStory.text || '-' }}</el-descriptions-item>
       </el-descriptions>
-
-      <!-- 媒体文件展示 -->
-      <div v-if="viewingUpstream.media && viewingUpstream.media.length > 0" class="media-display">
-        <h3 class="media-title">相关媒体文件</h3>
-        <div class="media-grid">
-          <div
-            v-for="(item, index) in viewingUpstream.media"
-            :key="index"
-            class="media-item"
-            @click="previewMedia(item)"
-          >
-            <template v-if="item.type === 'image'">
-              <el-image :src="item.url" fit="cover" class="media-thumbnail" />
-            </template>
-            <template v-else>
-              <div class="video-thumbnail">
-                <el-image :src="item.thumbnailUrl" fit="cover" class="media-thumbnail" />
-                <div class="play-icon">
-                  <i class="el-icon-video-play" />
-                </div>
-              </div>
-            </template>
-            <div class="media-name">{{ item.name }}</div>
-          </div>
-        </div>
-      </div>
 
       <div slot="footer" class="dialog-footer">
         <el-button @click="viewDialogVisible = false">关闭</el-button>
-      </div>
-    </el-dialog>
-
-    <!-- 媒体预览对话框 -->
-    <el-dialog
-      :visible.sync="previewDialogVisible"
-      :title="previewMediaItem.name || '预览媒体'"
-      width="800px"
-    >
-      <div class="preview-container">
-        <template v-if="previewMediaItem.type === 'image'">
-          <el-image :src="previewMediaItem.url" fit="contain" style="width: 100%; height: 500px;" />
-        </template>
-        <template v-else>
-          <video :src="previewMediaItem.url" controls style="width: 100%; max-height: 500px;" />
-        </template>
       </div>
     </el-dialog>
   </div>
 </template>
 
 <script>
+import { createBrandStory, getBrandStoryList, updateBrandStory, deleteBrandStory } from '@/api/production'
+import { uploadImage } from '@/api/media'
+import { getMerchantList } from '@/api/company'
+
 export default {
-  name: 'UpstreamProductionInfo',
+  name: 'BrandStoryManagement',
   data() {
     return {
-      // 上游信息列表
-      upstreamList: [],
+      // 品牌故事列表
+      brandStoryList: [],
+      // 商户列表
+      merchantList: [],
       // 选中的行
       selectedRows: [],
-      // 搜索参数
-      searchParams: {
-        name: '',
-        supplier: '',
-        type: ''
-      },
       // 分页参数
       currentPage: 1,
       pageSize: 10,
+      totalCount: 0,
       // 加载状态
       loading: false,
       // 对话框状态
       dialogVisible: false,
       isEditing: false,
       // 表单数据
-      upstreamForm: {
+      brandStoryForm: {
         id: '',
-        name: '',
-        type: '',
-        supplier: '',
-        supplierContact: '',
-        location: '',
-        productionDate: '',
-        description: '',
-        relatedProducts: []
+        merchant_id: undefined,
+        image: '',
+        text: '',
+        sort: 0
       },
       // 表单验证规则
       formRules: {
-        name: [
-          { required: true, message: '请输入信息名称', trigger: 'blur' }
+        merchant_id: [
+          { required: true, message: '请选择商⼾', trigger: 'change' }
         ],
-        type: [
-          { required: true, message: '请选择信息类型', trigger: 'change' }
+        image: [
+          { required: false, message: '请上传品牌图片', trigger: 'change' }
         ],
-        supplier: [
-          { required: true, message: '请输入供应商名称', trigger: 'blur' }
+        text: [
+          { required: false, message: '请输入品牌故事内容', trigger: 'blur' }
         ],
-        description: [
-          { required: true, message: '请输入详细描述', trigger: 'blur' }
-        ],
-        relatedProducts: [
-          { required: true, message: '请至少选择一个关联产品', trigger: 'change' }
+        sort: [
+          { required: false, message: '请输入排序值', trigger: 'blur' }
         ]
       },
-      // 临时媒体文件列表
-      tempMediaFiles: [],
-      // 可选择的产品列表
-      availableProducts: [],
       // 查看对话框数据
       viewDialogVisible: false,
-      viewingUpstream: {},
-      // 预览对话框数据
-      previewDialogVisible: false,
-      previewMediaItem: {}
-    }
-  },
-  computed: {
-    // 过滤后的上游信息列表
-    filteredUpstreamList() {
-      let result = [...this.upstreamList]
-
-      // 按名称搜索
-      if (this.searchParams.name) {
-        const keyword = this.searchParams.name.toLowerCase()
-        result = result.filter(item => item.name.toLowerCase().includes(keyword))
-      }
-
-      // 按供应商搜索
-      if (this.searchParams.supplier) {
-        const keyword = this.searchParams.supplier.toLowerCase()
-        result = result.filter(item => item.supplier.toLowerCase().includes(keyword))
-      }
-
-      // 按类型过滤
-      if (this.searchParams.type) {
-        result = result.filter(item => item.type === this.searchParams.type)
-      }
-
-      // 按创建时间倒序排列
-      result.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime))
-
-      return result
+      viewingBrandStory: {},
+      // 图片相关数据
+      imageFileList: [],
+      dialogVisibleImage: false,
+      dialogImageUrl: ''
     }
   },
   created() {
-    this.fetchUpstreamList()
-    this.fetchAvailableProducts()
+    this.fetchBrandStoryList()
+  },
+  mounted() {
+    getMerchantList({ merchant_type: 1 }).then(res => {
+      this.merchantList = res.data.merchant_record || []
+    })
   },
   methods: {
-    // 获取上游信息列表
-    fetchUpstreamList() {
+    // 获取品牌故事列表
+    fetchBrandStoryList() {
       this.loading = true
-      // 模拟API请求
-      setTimeout(() => {
-        this.upstreamList = [
-          {
-            id: '1',
-            name: '优质大米原料采购',
-            type: 'raw_material',
-            supplier: '湖南优质农产品有限公司',
-            supplierContact: '张先生 13800138001',
-            location: '湖南长沙',
-            productionDate: '2023-05-15',
-            description: '采购自湖南优质大米种植基地，采用有机种植方式，无农药残留，品质优良。',
-            relatedProducts: [
-              { id: '101', name: '香泰优质大米' },
-              { id: '102', name: '香泰生态米' }
-            ],
-            media: [
-              {
-                id: '1001',
-                name: '种植基地全景',
-                url: 'https://via.placeholder.com/800x600?text=Rice+Farm',
-                type: 'image'
-              },
-              {
-                id: '1002',
-                name: '收割过程',
-                url: 'https://via.placeholder.com/800x600?text=Harvesting',
-                type: 'image'
-              }
-            ],
-            mediaCount: 2,
-            createdTime: '2023-05-20 14:30:00',
-            updatedTime: '2023-06-05 10:15:00'
-          },
-          {
-            id: '2',
-            name: '大米加工流程',
-            type: 'processing',
-            supplier: '湖南香泰供应链管理有限公司',
-            supplierContact: '李经理 13900139002',
-            location: '湖南岳阳',
-            productionDate: '2023-05-20',
-            description: '采用现代化加工设备，严格按照食品加工标准进行生产，确保产品质量和安全。',
-            relatedProducts: [
-              { id: '101', name: '香泰优质大米' },
-              { id: '102', name: '香泰生态米' }
-            ],
-            media: [
-              {
-                id: '2001',
-                name: '加工车间',
-                url: 'https://via.placeholder.com/800x600?text=Processing+Plant',
-                type: 'image'
-              },
-              {
-                id: '2002',
-                name: '加工过程视频',
-                url: 'https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4',
-                thumbnailUrl: 'https://via.placeholder.com/800x450?text=Processing+Video',
-                type: 'video'
-              }
-            ],
-            mediaCount: 2,
-            createdTime: '2023-05-25 09:15:00',
-            updatedTime: '2023-06-10 16:40:00'
-          },
-          {
-            id: '3',
-            name: '环保包装材料',
-            type: 'packaging',
-            supplier: '绿色包装科技有限公司',
-            supplierContact: '王总 13700137003',
-            location: '广东深圳',
-            productionDate: '2023-06-01',
-            description: '采用可降解环保包装材料，符合现代环保理念，对环境友好。',
-            relatedProducts: [
-              { id: '101', name: '香泰优质大米' },
-              { id: '102', name: '香泰生态米' },
-              { id: '103', name: '香泰有机大米' }
-            ],
-            media: [
-              {
-                id: '3001',
-                name: '包装材料展示',
-                url: 'https://via.placeholder.com/800x600?text=Packaging+Materials',
-                type: 'image'
-              }
-            ],
-            mediaCount: 1,
-            createdTime: '2023-06-05 11:20:00',
-            updatedTime: '2023-06-05 11:20:00'
-          }
-        ]
+      const params = {
+        page: this.currentPage,
+        size: this.pageSize
+      }
+      getBrandStoryList(params).then(response => {
+        if (response.code === 200) {
+          this.brandStoryList = response.data.brandStory_record || []
+          this.totalCount = response.data.count || 0
+        } else {
+          this.$message.error('获取品牌故事列表失败')
+        }
         this.loading = false
-      }, 1000)
-    },
-
-    // 获取可用产品列表
-    fetchAvailableProducts() {
-      // 模拟API请求
-      setTimeout(() => {
-        this.availableProducts = [
-          { id: '101', name: '香泰优质大米' },
-          { id: '102', name: '香泰生态米' },
-          { id: '103', name: '香泰有机大米' },
-          { id: '104', name: '香泰红米' },
-          { id: '105', name: '香泰糙米' }
-        ]
-      }, 500)
-    },
-
-    // 远程搜索产品
-    remoteSearchProducts(query) {
-      if (query) {
-        // 模拟搜索过程
-        setTimeout(() => {
-          this.availableProducts = [
-            { id: '101', name: '香泰优质大米' },
-            { id: '102', name: '香泰生态米' },
-            { id: '103', name: '香泰有机大米' },
-            { id: '104', name: '香泰红米' },
-            { id: '105', name: '香泰糙米' }
-          ].filter(item => item.name.toLowerCase().includes(query.toLowerCase()))
-        }, 300)
-      } else {
-        this.fetchAvailableProducts()
-      }
-    },
-
-    // 搜索
-    search() {
-      this.currentPage = 1 // 重置到第一页
-    },
-
-    // 重置搜索
-    resetSearch() {
-      this.searchParams = {
-        name: '',
-        supplier: '',
-        type: ''
-      }
-      this.currentPage = 1
+      }).catch(error => {
+        this.$message.error('获取品牌故事列表失败: ' + (error.message || '未知错误'))
+        this.loading = false
+      })
     },
 
     // 处理选择变化
@@ -538,167 +258,240 @@ export default {
     handleSizeChange(val) {
       this.pageSize = val
       this.currentPage = 1
+      this.fetchBrandStoryList()
     },
 
     handleCurrentChange(val) {
       this.currentPage = val
+      this.fetchBrandStoryList()
     },
 
-    // 获取类型名称
-    getTypeName(type) {
-      const typeMap = {
-        'raw_material': '原料信息',
-        'processing': '加工过程',
-        'packaging': '包装信息',
-        'other': '其他'
-      }
-      return typeMap[type] || '未知类型'
-    },
-
-    // 获取类型标签类型
-    getTypeTagType(type) {
-      const typeTagMap = {
-        'raw_material': 'success',
-        'processing': 'primary',
-        'packaging': 'warning',
-        'other': 'info'
-      }
-      return typeTagMap[type] || 'default'
-    },
-
-    // 添加上游信息
-    addUpstreamInfo() {
+    // 添加品牌故事
+    addBrandStory() {
       this.isEditing = false
-      this.upstreamForm = {
-        id: '',
-        name: '',
-        type: '',
-        supplier: '',
-        supplierContact: '',
-        location: '',
-        productionDate: '',
-        description: '',
-        relatedProducts: []
+      this.brandStoryForm = {
+        // id: '',
+        merchant_id: undefined,
+        image: '',
+        text: '',
+        sort: 0
       }
-      this.tempMediaFiles = []
+      // 清空图片文件列表
+      this.imageFileList = []
       this.dialogVisible = true
     },
 
-    // 编辑上游信息
-    editUpstreamInfo(row) {
+    // 编辑品牌故事
+    editBrandStory(row) {
       this.isEditing = true
-      this.upstreamForm = JSON.parse(JSON.stringify(row))
-      // 转换媒体文件为上传组件所需格式
-      this.tempMediaFiles = row.media ? row.media.map(item => ({
-        name: item.name,
-        url: item.url,
-        uid: item.id
-      })) : []
+      this.brandStoryForm = JSON.parse(JSON.stringify(row))
+      // 处理品牌图片
+      this.imageFileList = []
+      if (row.image) {
+        // 检查图片是完整URL还是cid
+        let cid, fullUrl
+        if (row.image.startsWith('http')) {
+          fullUrl = row.image
+          cid = row.image.split('/').pop()
+        } else {
+          cid = row.image
+          fullUrl = `https://dev.xiangtaihou-food.com/ipfs/${cid}`
+        }
+        this.imageFileList.push({
+          name: `品牌图片${Math.random().toString(36).substr(2, 9)}`,
+          url: fullUrl,
+          cid: cid,
+          status: 'success',
+          uid: Date.now() + Math.random().toString(36).substr(2, 9)
+        })
+      }
       this.dialogVisible = true
     },
 
-    // 查看上游信息
-    viewUpstreamInfo(row) {
-      this.viewingUpstream = JSON.parse(JSON.stringify(row))
+    // 图片预览
+    handleImagePreview(file) {
+      let previewUrl = file.url
+      // 如果文件有cid属性，构造完整的IPFS路径
+      if (file.cid) {
+        previewUrl = `https://dev.xiangtaihou-food.com/ipfs/${file.cid}`
+      } else if (file.response && file.response.data && file.response.data.cid) {
+        // 处理已上传但可能url属性未更新的情况
+        previewUrl = `https://dev.xiangtaihou-food.com/ipfs/${file.response.data.cid}`
+      }
+      this.dialogImageUrl = previewUrl
+      this.dialogVisibleImage = true
+    },
+
+    // 图片上传前验证
+    async beforeImageUpload(file) {
+      const isImage = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/webp'
+      const isLt800K = file.size / 1024 < 800
+
+      if (!isImage) {
+        this.$message.error('只能上传JPG、PNG或WEBP格式的图片!')
+      }
+      if (!isLt800K) {
+        this.$message.error('上传图片大小不能超过 800KB!')
+      }
+      return isImage && isLt800K
+    },
+
+    // 图片删除处理
+    handleImageRemove(file, fileList) {
+      this.imageFileList = fileList
+      this.brandStoryForm.image = ''
+      // 手动触发表单验证更新
+      this.$refs['brandStoryForm'].validateField('image')
+    },
+
+    // 图片上传处理
+    async handleImageChange(file, fileList) {
+      // 只处理用户新选择的文件（status为ready且有raw文件），防止重复上传
+      if (file.raw && file.status === 'ready' && !file.uploading) {
+        try {
+          // 限制只上传一张图片，清理之前的图片
+          this.imageFileList = []
+
+          // 标记文件正在上传，防止重复上传
+          const uploadingFile = Object.assign({}, file, { uploading: true })
+          this.imageFileList.push(uploadingFile)
+
+          // 验证图片格式和大小
+          const isImage = file.raw.type === 'image/jpeg' || file.raw.type === 'image/png' || file.raw.type === 'image/webp'
+          const isLt800K = file.raw.size / 1024 < 800
+
+          if (!isImage || !isLt800K) {
+            this.$message.error(isImage ? '上传图片大小不能超过 800KB!' : '只能上传JPG、PNG或WEBP格式的图片!')
+            // 移除不符合要求的文件
+            this.imageFileList = []
+            this.brandStoryForm.image = ''
+            return
+          }
+
+          // 创建FormData并上传图片
+          const formData = new FormData()
+          formData.append('file', file.raw)
+          formData.append('type', 'brandImage')
+
+          // 调用上传接口
+          const response = await uploadImage(formData)
+
+          // 检查响应数据结构
+          if (!response || !response.data || !response.data.cid) {
+            throw new Error('上传接口返回数据格式不正确')
+          }
+          // 获取上传成功返回的cid
+          const cid = response.data.cid
+
+          // 构造完整的预览URL
+          const previewUrl = `https://dev.xiangtaihou-food.com/ipfs/${cid}`
+
+          // 更新文件对象，添加cid和预览URL
+          const updatedFile = Object.assign({}, file, {
+            url: previewUrl,
+            cid: cid,
+            status: 'success',
+            uploading: false
+          })
+
+          // 更新文件列表，只保留当前上传的图片
+          this.imageFileList = [updatedFile]
+          // 更新表单数据，使用cid作为image值
+          this.brandStoryForm.image = cid
+          // 手动触发表单验证更新
+          this.$refs['brandStoryForm'].validateField('image')
+          this.$message.success('图片上传成功')
+        } catch (error) {
+          console.error('图片上传失败:', error)
+          this.$message.error('图片上传失败: ' + (error.message || '未知错误'))
+          // 移除上传失败的文件
+          this.imageFileList = []
+          this.brandStoryForm.image = ''
+        }
+      } else if (file.status !== 'ready') {
+        // 更新文件列表（处理删除等操作，但跳过ready状态的文件以避免重复上传）
+        this.imageFileList = fileList
+        // 如果删除了图片，清空image字段
+        if (fileList.length === 0) {
+          this.brandStoryForm.image = ''
+          this.$refs['brandStoryForm'].validateField('image')
+        }
+      }
+    },
+
+    // 查看品牌故事
+    viewBrandStory(row) {
+      this.viewingBrandStory = JSON.parse(JSON.stringify(row))
       this.viewDialogVisible = true
     },
 
-    // 预览媒体
-    previewMedia(item) {
-      this.previewMediaItem = item
-      this.previewDialogVisible = true
-    },
-
-    // 文件上传前检查
-    beforeMediaUpload(file) {
-      // 允许的文件类型
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4']
-      // 检查文件类型
-      if (!allowedTypes.includes(file.type)) {
-        this.$message.error('只支持jpg、jpeg、png、gif、mp4格式文件!')
-        return false
+    // 获取完整的图片URL
+    getFullImageUrl(image) {
+      if (!image) {
+        return ''
       }
-      // 检查文件大小
-      const maxSize = 50 * 1024 * 1024 // 50MB
-      if (file.size > maxSize) {
-        this.$message.error('文件大小不能超过50MB!')
-        return false
+      // 如果已经是完整的URL，直接返回
+      if (image.startsWith('http')) {
+        return image
       }
-      return true
+      // 如果是CID，拼接完整的IPFS URL
+      return `https://dev.xiangtaihou-food.com/ipfs/${image}`
     },
 
-    // 处理文件上传成功
-    handleMediaUploadSuccess(response, file, fileList) {
-      // 上传成功后的处理逻辑
-    },
-
-    // 处理文件超出限制
-    handleExceed(files, fileList) {
-      this.$message.warning(`当前限制最多上传10个文件`)
-    },
-
-    // 保存上游信息
-    saveUpstreamInfo() {
-      this.$refs.upstreamForm.validate((valid) => {
+    // 保存品牌故事
+    saveBrandStory() {
+      this.$refs.brandStoryForm.validate((valid) => {
         if (valid) {
           this.loading = true
-          // 模拟保存操作
-          setTimeout(() => {
-            // 准备媒体数据
-            const media = this.tempMediaFiles.map((file, index) => ({
-              id: file.uid || Date.now() + index.toString(),
-              name: file.name,
-              url: file.url,
-              type: file.raw ? (file.raw.type.startsWith('image/') ? 'image' : 'video')
-                : (file.url.includes('.mp4') ? 'video' : 'image'),
-              thumbnailUrl: file.url.includes('.mp4') ? 'https://via.placeholder.com/800x450?text=Video+Thumbnail' : undefined
-            }))
+          const requestData = {
+            ...this.brandStoryForm
+          }
 
-            const upstreamData = {
-              ...this.upstreamForm,
-              media,
-              mediaCount: media.length,
-              updatedTime: new Date().toLocaleString('zh-CN')
-            }
+          const savePromise = this.isEditing
+            ? updateBrandStory(requestData)
+            : createBrandStory(requestData)
 
-            if (this.isEditing) {
-              // 编辑现有记录
-              const index = this.upstreamList.findIndex(item => item.id === upstreamData.id)
-              if (index > -1) {
-                this.upstreamList.splice(index, 1, upstreamData)
-              }
-              this.$message.success('编辑成功')
+          savePromise.then(response => {
+            if (response.code === 200) {
+              this.$message.success(this.isEditing ? '编辑成功' : '添加成功')
+              this.dialogVisible = false
+              this.fetchBrandStoryList()
             } else {
-              // 添加新记录
-              upstreamData.id = Date.now().toString()
-              upstreamData.createdTime = new Date().toLocaleString('zh-CN')
-              this.upstreamList.push(upstreamData)
-              this.$message.success('添加成功')
+              this.$message.error(this.isEditing ? '编辑失败' : '添加失败')
             }
-
-            this.dialogVisible = false
             this.loading = false
-          }, 1000)
+          }).catch(error => {
+            this.$message.error(this.isEditing ? '编辑失败' : '添加失败' + (error.message || '未知错误'))
+            this.loading = false
+          })
         }
       })
     },
 
-    // 删除上游信息
-    deleteUpstreamInfo(id) {
-      this.$confirm('确定要删除这条上游信息吗？删除后将无法恢复', '提示', {
+    // 删除品牌故事
+    deleteBrandStory(id) {
+      this.$confirm('确定要删除这条品牌故事吗？删除后将无法恢复', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
         this.loading = true
-        // 模拟删除操作
-        setTimeout(() => {
-          this.upstreamList = this.upstreamList.filter(item => item.id !== id)
-          // 从选中列表中移除
-          this.selectedRows = this.selectedRows.filter(item => item.id !== id)
-          this.$message.success('删除成功')
+        deleteBrandStory({ id }).then(response => {
+          if (response.code === 200) {
+            this.$message.success('删除成功')
+            this.fetchBrandStoryList()
+            // 从选中列表中移除
+            this.selectedRows = this.selectedRows.filter(item => item.id !== id)
+          } else {
+            this.$message.error('删除失败')
+          }
           this.loading = false
-        }, 500)
+        }).catch(error => {
+          this.$message.error('删除失败: ' + (error.message || '未知错误'))
+          this.loading = false
+        })
+      }).catch(() => {
+        // 用户取消操作，不做处理
       })
     },
 
@@ -709,20 +502,32 @@ export default {
         return
       }
 
-      this.$confirm(`确定要删除选中的 ${this.selectedRows.length} 条上游信息吗？删除后将无法恢复`, '提示', {
+      this.$confirm(`确定要删除选中的 ${this.selectedRows.length} 条品牌故事吗？删除后将无法恢复`, '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
         this.loading = true
-        // 模拟批量删除操作
-        setTimeout(() => {
-          const idsToDelete = this.selectedRows.map(item => item.id)
-          this.upstreamList = this.upstreamList.filter(item => !idsToDelete.includes(item.id))
+        // 批量删除需要多次调用删除接口
+        const deletePromises = this.selectedRows.map(row => deleteBrandStory({ id: row.id }))
+
+        Promise.all(deletePromises).then(results => {
+          // 检查是否有删除失败的记录
+          const failedResults = results.filter(result => result.code !== 200)
+          if (failedResults.length === 0) {
+            this.$message.success(`成功删除 ${this.selectedRows.length} 条品牌故事`)
+          } else {
+            this.$message.warning(`删除完成，但有 ${failedResults.length} 条记录删除失败`)
+          }
+          this.fetchBrandStoryList()
           this.selectedRows = []
-          this.$message.success(`成功删除 ${idsToDelete.length} 条上游信息`)
           this.loading = false
-        }, 500)
+        }).catch(error => {
+          this.$message.error('批量删除失败: ' + (error.message || '未知错误'))
+          this.loading = false
+        })
+      }).catch(() => {
+        // 用户取消操作，不做处理
       })
     }
   }
@@ -730,116 +535,21 @@ export default {
 </script>
 
 <style scoped>
-.operation-bar {
+.image-uploader {
+  margin-bottom: 10px;
+}
+
+.image-preview {
+  margin-top: 10px;
   display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 10px;
-}
-
-.search-form {
-  background-color: #f5f7fa;
-  padding: 15px;
-  border-radius: 4px;
-}
-
-.pagination-container {
-  margin-top: 20px;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.form-hint {
-  color: #909399;
-  font-size: 12px;
-  margin-top: 5px;
-}
-
-.media-display {
-  margin-top: 30px;
-}
-
-.media-title {
-  font-size: 16px;
-  font-weight: 500;
-  margin-bottom: 15px;
-}
-
-.media-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 15px;
-}
-
-.media-item {
-  cursor: pointer;
-  text-align: center;
-}
-
-.media-thumbnail {
-  width: 100%;
-  height: 120px;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.video-thumbnail {
-  position: relative;
-  width: 100%;
-  height: 120px;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.play-icon {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
   align-items: center;
 }
 
-.play-icon i {
-  color: white;
-  font-size: 18px;
-}
-
-.media-name {
-  margin-top: 8px;
-  font-size: 14px;
-  color: #606266;
+.story-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.preview-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 500px;
-  background-color: #f5f5f5;
-  border-radius: 4px;
-  padding: 20px;
-}
-
-.related-products {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.mr-1 {
-  margin-right: 8px;
-}
-
-.mb-1 {
-  margin-bottom: 8px;
 }
 </style>
