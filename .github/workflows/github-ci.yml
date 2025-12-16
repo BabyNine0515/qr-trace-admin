@@ -1,0 +1,64 @@
+name: web CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+
+env:
+  NODE_VERSION: '20'
+  DOCKER_REGISTRY: 'hub.blockcool.xyz'
+  DOCKER_REPOSITORY: 'xiangtaihou'
+  IMAGE_NAME: "xiangtaihou-admin"
+  BRANCH_NAME: ${{ github.ref_name }}
+
+jobs:
+  job:
+    name: Build and push
+    runs-on: [ubuntu-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4  # 检出代码
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}  # 指定 Node 版本（推荐 LTS）
+          cache: 'npm'        # 缓存依赖加速构建
+
+      - name: Install dependencies
+        run: npm install      # 安装依赖
+
+      - name: Build project
+        run: npm run build    # 执行构建命令（Vue 默认 build 脚本）
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64  # 可选: 添加 linux/arm64 支持多架构
+          push: true
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ env.BRANCH_NAME }}
+            ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=${{ github.repositoryUrl }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Print image URL
+        run: |
+          echo "Successfully built and pushed image:"
+          echo "${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          echo "${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ env.BRANCH_NAME }}"
