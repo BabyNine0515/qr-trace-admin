@@ -310,7 +310,7 @@ export default {
               } else {
                 // 如果是cid，构造完整URL
                 cid = item
-                fullUrl = `https://dev.xiangtaihou-food.com/ipfs/${cid}`
+                fullUrl = `https://h5.xiangtaihou-food.com/ipfs/${cid}`
               }
               return {
                 name: `商品图片${Math.random().toString(36).substr(2, 9)}`, // 添加name属性，否则上传组件会显示undefined
@@ -345,10 +345,10 @@ export default {
       let previewUrl = file.url
       // 如果文件有cid属性，构造完整的IPFS路径
       if (file.cid) {
-        previewUrl = `https://dev.xiangtaihou-food.com/ipfs/${file.cid}`
+        previewUrl = `https://h5.xiangtaihou-food.com/ipfs/${file.cid}`
       } else if (file.response && file.response.data && file.response.data.cid) {
         // 处理已上传但可能url属性未更新的情况
-        previewUrl = `https://dev.xiangtaihou-food.com/ipfs/${file.response.data.cid}`
+        previewUrl = `https://h5.xiangtaihou-food.com/ipfs/${file.response.data.cid}`
       }
       this.dialogImageUrl = previewUrl
       this.dialogVisible = true
@@ -415,7 +415,7 @@ export default {
           const cid = response.data.cid
 
           // 构造完整的预览URL
-          const previewUrl = `https://dev.xiangtaihou-food.com/ipfs/${cid}`
+          const previewUrl = `https://h5.xiangtaihou-food.com/ipfs/${cid}`
 
           // 更新文件对象，添加cid和预览URL
           const updatedFile = Object.assign({}, file, {

@@ -396,10 +396,10 @@ export default {
       let previewUrl = file.url
       // 如果文件有cid属性，构造完整的IPFS路径
       if (file.cid) {
-        previewUrl = `https://dev.xiangtaihou-food.com/ipfs/${file.cid}`
+        previewUrl = `https://h5.xiangtaihou-food.com/ipfs/${file.cid}`
       } else if (file.response && file.response.data && file.response.data.cid) {
         // 处理已上传但可能url属性未更新的情况
-        previewUrl = `https://dev.xiangtaihou-food.com/ipfs/${file.response.data.cid}`
+        previewUrl = `https://h5.xiangtaihou-food.com/ipfs/${file.response.data.cid}`
       }
       this.dialogImageUrl = previewUrl
       this.previewDialogVisible = true
@@ -480,7 +480,7 @@ export default {
           const cid = response.data.cid
 
           // 构造完整的预览URL
-          const previewUrl = `https://dev.xiangtaihou-food.com/ipfs/${cid}`
+          const previewUrl = `https://h5.xiangtaihou-food.com/ipfs/${cid}`
 
           // 更新文件对象，添加cid和预览URL
           const updatedFile = Object.assign({}, file, {
@@ -621,7 +621,7 @@ export default {
         } else {
           // 如果是cid，构造完整URL
           cid = imageUrl
-          fullUrl = `https://dev.xiangtaihou-food.com/ipfs/${cid}`
+          fullUrl = `https://h5.xiangtaihou-food.com/ipfs/${cid}`
         }
         this.businessLicenseList.push({
           name: `营业执照图片`,
@@ -642,7 +642,7 @@ export default {
             cid = imageUrl.split('/').pop()
           } else {
             cid = imageUrl
-            fullUrl = `https://dev.xiangtaihou-food.com/ipfs/${cid}`
+            fullUrl = `https://h5.xiangtaihou-food.com/ipfs/${cid}`
           }
           this.otherCertList.push({
             name: `其他认证${index + 1}`,
@@ -664,7 +664,7 @@ export default {
             cid = imageUrl.split('/').pop()
           } else {
             cid = imageUrl
-            fullUrl = `https://dev.xiangtaihou-food.com/ipfs/${cid}`
+            fullUrl = `https://h5.xiangtaihou-food.com/ipfs/${cid}`
           }
           this.companyImagesList.push({
             name: `公司照片${index + 1}`,

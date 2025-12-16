@@ -406,7 +406,7 @@ export default {
         return trimmedUrl
       }
       // 否则拼接IPFS前缀
-      return `https://dev.xiangtaihou-food.com/ipfs/${trimmedUrl}`
+      return `https://h5.xiangtaihou-food.com/ipfs/${trimmedUrl}`
     },
 
     // 判断是否为图片
@@ -553,7 +553,7 @@ export default {
         } else {
           // 如果是cid，构造完整URL
           cid = item
-          fullUrl = `https://dev.xiangtaihou-food.com/ipfs/${cid}`
+          fullUrl = `https://h5.xiangtaihou-food.com/ipfs/${cid}`
         }
         return {
           name: `image-${index}`,
@@ -629,10 +629,10 @@ export default {
       let previewUrl = file.url
       // 如果文件有cid属性，构造完整的IPFS路径
       if (file.cid) {
-        previewUrl = `https://dev.xiangtaihou-food.com/ipfs/${file.cid}`
+        previewUrl = `https://h5.xiangtaihou-food.com/ipfs/${file.cid}`
       } else if (file.response && file.response.data && file.response.data.cid) {
         // 处理已上传但可能url属性未更新的情况
-        previewUrl = `https://dev.xiangtaihou-food.com/ipfs/${file.response.data.cid}`
+        previewUrl = `https://h5.xiangtaihou-food.com/ipfs/${file.response.data.cid}`
       }
       this.previewMediaUrl = previewUrl
       this.previewMediaType = 'image'
@@ -702,7 +702,7 @@ export default {
             if (response.data.cid) {
               // IPFS存储返回cid
               cid = response.data.cid
-              url = `https://dev.xiangtaihou-food.com/ipfs/${cid}`
+              url = `https://h5.xiangtaihou-food.com/ipfs/${cid}`
             } else if (response.data.url) {
               // 传统存储返回url
               url = response.data.url

@@ -295,7 +295,7 @@ export default {
           cid = row.report_img.split('/').pop()
         } else {
           cid = row.report_img
-          fullUrl = `https://dev.xiangtaihou-food.com/ipfs/${cid}`
+          fullUrl = `https://h5.xiangtaihou-food.com/ipfs/${cid}`
         }
         this.imageFileList.push({
           name: `报告图片${Math.random().toString(36).substr(2, 9)}`,
@@ -312,10 +312,10 @@ export default {
       let previewUrl = file.url
       // 如果文件有cid属性，构造完整的IPFS路径
       if (file.cid) {
-        previewUrl = `https://dev.xiangtaihou-food.com/ipfs/${file.cid}`
+        previewUrl = `https://h5.xiangtaihou-food.com/ipfs/${file.cid}`
       } else if (file.response && file.response.data && file.response.data.cid) {
         // 处理已上传但可能url属性未更新的情况
-        previewUrl = `https://dev.xiangtaihou-food.com/ipfs/${file.response.data.cid}`
+        previewUrl = `https://h5.xiangtaihou-food.com/ipfs/${file.response.data.cid}`
       }
       this.dialogImageUrl = previewUrl
       this.dialogVisibleImage = true
@@ -381,7 +381,7 @@ export default {
           }
 
           // 获取上传成功返回的URL或cid
-          const imageUrl = response.data.url || `https://dev.xiangtaihou-food.com/ipfs/${response.data.cid}`
+          const imageUrl = response.data.url || `https://h5.xiangtaihou-food.com/ipfs/${response.data.cid}`
           const cid = response.data.cid || imageUrl.split('/').pop()
 
           // 更新文件对象，添加cid和预览URL
@@ -533,7 +533,7 @@ export default {
         return image
       }
       // 如果是CID，拼接完整的IPFS URL
-      return `https://dev.xiangtaihou-food.com/ipfs/${image}`
+      return `https://h5.xiangtaihou-food.com/ipfs/${image}`
     }
   }
 }
