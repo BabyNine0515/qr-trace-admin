@@ -74,7 +74,7 @@
         <el-table-column prop="comment_text" label="评论内容" min-width="300">
           <template slot-scope="scope">
             <div class="comment-content">
-              <p v-html="formatContent(scope.row.comment_test)" />
+              <p v-html="formatContent(scope.row.comment_text)" />
             </div>
           </template>
         </el-table-column>
@@ -105,7 +105,7 @@
                   />
                 </div>
               </div>
-              <span v-if="scope.row.images.length > 3" class="more-images" @click.stop="previewAllImages(scope.row.images)">+{{ scope.row.images.length - 3 }}</span>
+              <!-- <span v-if="scope.row.images.length > 3" class="more-images" @click.stop="previewAllImages(scope.row.images)">+{{ scope.row.images.length - 3 }}</span> -->
             </div>
             <span v-else class="no-media">无</span>
           </template>
@@ -412,9 +412,9 @@ export default {
     // 判断是否为图片
     isImage(url) {
       if (!url) return false
-      const trimmedUrl = this.trimMediaUrl(url)
-      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
-      return imageExtensions.some(ext => trimmedUrl.toLowerCase().endsWith(ext))
+      // 对于IPFS cid（没有扩展名），默认当作图片处理
+      // 因为评论中的媒体主要是图片
+      return true
     },
 
     // 判断是否为视频

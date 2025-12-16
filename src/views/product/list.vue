@@ -113,9 +113,9 @@ export default {
         .catch(error => {
           console.error('获取产品列表失败:', error)
           this.$message.error('获取数据失败，请稍后重试')
-          // 模拟数据作为后备
-          this.productList = []
-          this.total = this.productList.length
+          // 保留之前的数据，避免分页组件消失
+          // this.productList = []
+          // this.total = this.productList.length
         })
         .finally(() => {
           this.loading = false
