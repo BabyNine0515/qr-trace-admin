@@ -121,64 +121,22 @@
         </el-form-item>
 
         <!-- 公司资质 -->
-        <el-form-item label="公司资质">
-          <el-card shadow="hover" class="mb-4">
-            <el-form-item label="营业执照ID" prop="credential.license_id">
-              <el-input
-                v-model="companyInfo.credential.license_id"
-                placeholder="请输入营业执照ID"
-                maxlength="50"
-                show-word-limit
-              />
-            </el-form-item>
-
-            <el-form-item label="发证日期" prop="credential.issue_date">
-              <el-date-picker
-                v-model="companyInfo.credential.issue_date"
-                type="date"
-                placeholder="请选择发证日期"
-                value-format="yyyy-MM-dd"
-              />
-            </el-form-item>
-
-            <!-- 营业执照图片 -->
-            <!-- <el-form-item label="营业执照图片" prop="credential.business_license_image">
-              <el-upload
-                action="#"
-                list-type="picture-card"
-                :file-list="businessLicenseList"
-                :on-preview="handleImagePreview"
-                :on-remove="handleBusinessLicenseRemove"
-                :on-change="handleBusinessLicenseChange"
-                :limit="1"
-                accept="image/jpeg,image/png,image/webp"
-                :before-upload="beforeImageUpload"
-                :auto-upload="false"
-              >
-                <i class="el-icon-plus" />
-              </el-upload>
-              <div class="el-form-item__help">jpg/png/webp格式，≤800KB</div>
-            </el-form-item> -->
-
-            <!-- 其他认证 -->
-            <!-- <el-form-item label="其他认证">
-              <el-upload
-                action="#"
-                list-type="picture-card"
-                :file-list="otherCertList"
-                :on-preview="handleImagePreview"
-                :on-remove="handleOtherCertRemove"
-                :on-change="handleOtherCertChange"
-                :limit="5"
-                accept="image/jpeg,image/png,image/webp"
-                :before-upload="beforeImageUpload"
-                :auto-upload="false"
-              >
-                <i class="el-icon-plus" />
-              </el-upload>
-              <div class="el-form-item__help">jpg/png/webp格式，≤800KB</div>
-            </el-form-item> -->
-          </el-card>
+        <el-form-item label="公司资质" prop="credential">
+          <el-upload
+            action="#"
+            list-type="picture-card"
+            :file-list="credentialList"
+            :on-preview="handleImagePreview"
+            :on-remove="handleCredentialRemove"
+            :on-change="handleCredentialChange"
+            :limit="8"
+            accept="image/jpeg,image/png,image/webp"
+            :before-upload="beforeImageUpload"
+            :auto-upload="false"
+          >
+            <i class="el-icon-plus" />
+          </el-upload>
+          <div class="el-form-item__help">支持上传多张资质图片，jpg/png/webp格式，≤800KB</div>
         </el-form-item>
 
         <!-- 公司照片 -->
@@ -273,8 +231,7 @@ export default {
       dialogImageUrl: '',
 
       // 图片列表
-      businessLicenseList: [],
-      otherCertList: [],
+      credentialList: [],
       companyImagesList: [],
 
       // 商户信息表单
@@ -288,12 +245,7 @@ export default {
         company_website: '',
         general_email: '',
         su_email: '',
-        credential: {
-          license_id: '',
-          issue_date: '',
-          business_license_image: '',
-          other_certificates: []
-        },
+        credential: [],
         company_images: []
       },
 
@@ -322,13 +274,6 @@ export default {
           { required: true, message: '请输入通用邮箱', trigger: 'blur' },
           { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' },
           { max: 100, message: '邮箱长度不能超过100个字符', trigger: 'blur' }
-        ],
-        'credential.license_id': [
-          { required: true, message: '请输入营业执照ID', trigger: 'blur' },
-          { max: 50, message: '营业执照ID长度不能超过50个字符', trigger: 'blur' }
-        ],
-        'credential.issue_date': [
-          { required: true, message: '请选择发证日期', trigger: 'change' }
         ]
       }
     }
@@ -433,10 +378,8 @@ export default {
           }
 
           // 更新对应的文件列表
-          if (type === 'businessLicense') {
-            this.businessLicenseList = tempFileList
-          } else if (type === 'otherCert') {
-            this.otherCertList = tempFileList
+          if (type === 'credential') {
+            this.credentialList = tempFileList
           } else if (type === 'companyImage') {
             this.companyImagesList = tempFileList
           }
@@ -448,10 +391,8 @@ export default {
           if (!isImage || !isLt800K) {
             this.$message.error(isImage ? '上传图片大小不能超过 800KB!' : '只能上传JPG、PNG或WEBP格式的图片!')
             // 移除不符合要求的文件
-            if (type === 'businessLicense') {
-              this.businessLicenseList = fileList.filter(f => f.uid !== file.uid)
-            } else if (type === 'otherCert') {
-              this.otherCertList = fileList.filter(f => f.uid !== file.uid)
+            if (type === 'credential') {
+              this.credentialList = fileList.filter(f => f.uid !== file.uid)
             } else if (type === 'companyImage') {
               this.companyImagesList = fileList.filter(f => f.uid !== file.uid)
             }
@@ -498,10 +439,8 @@ export default {
           }
 
           // 更新对应的文件列表
-          if (type === 'businessLicense') {
-            this.businessLicenseList = updatedFileList
-          } else if (type === 'otherCert') {
-            this.otherCertList = updatedFileList
+          if (type === 'credential') {
+            this.credentialList = updatedFileList
           } else if (type === 'companyImage') {
             this.companyImagesList = updatedFileList
           }
@@ -511,10 +450,8 @@ export default {
           console.error('图片上传失败:', error)
           this.$message.error('图片上传失败: ' + (error.message || '未知错误'))
           // 移除上传失败的文件
-          if (type === 'businessLicense') {
-            this.businessLicenseList = fileList.filter(f => f.uid !== file.uid)
-          } else if (type === 'otherCert') {
-            this.otherCertList = fileList.filter(f => f.uid !== file.uid)
+          if (type === 'credential') {
+            this.credentialList = fileList.filter(f => f.uid !== file.uid)
           } else if (type === 'companyImage') {
             this.companyImagesList = fileList.filter(f => f.uid !== file.uid)
           }
@@ -522,24 +459,14 @@ export default {
       }
     },
 
-    // 营业执照图片上传处理
-    handleBusinessLicenseChange(file, fileList) {
-      this.handleImageUpload(file, fileList, 'businessLicense')
+    // 资质图片上传处理
+    handleCredentialChange(file, fileList) {
+      this.handleImageUpload(file, fileList, 'credential')
     },
 
-    // 营业执照图片删除处理
-    handleBusinessLicenseRemove(file, fileList) {
-      this.businessLicenseList = fileList
-    },
-
-    // 其他认证图片上传处理
-    handleOtherCertChange(file, fileList) {
-      this.handleImageUpload(file, fileList, 'otherCert')
-    },
-
-    // 其他认证图片删除处理
-    handleOtherCertRemove(file, fileList) {
-      this.otherCertList = fileList
+    // 资质图片删除处理
+    handleCredentialRemove(file, fileList) {
+      this.credentialList = fileList
     },
 
     // 公司照片上传处理
@@ -565,12 +492,8 @@ export default {
           }
 
           // 从文件列表中提取cid并赋值给表单数据
-          // 营业执照图片
-          const businessLicense = this.businessLicenseList.find(file => file.status === 'success' && file.cid)
-          submitData.credential.business_license_image = businessLicense ? businessLicense.cid : ''
-
-          // 其他认证
-          submitData.credential.other_certificates = this.otherCertList
+          // 资质图片
+          submitData.credential = this.credentialList
             .filter(file => file.status === 'success' && file.cid)
             .map(file => file.cid)
 
@@ -609,33 +532,10 @@ export default {
 
     // 初始化图片列表
     initImageLists() {
-      // 初始化营业执照图片列表
-      this.businessLicenseList = []
-      if (this.companyInfo.credential.business_license_image) {
-        const imageUrl = this.companyInfo.credential.business_license_image
-        let cid, fullUrl
-        if (imageUrl.startsWith('http')) {
-          // 如果是完整URL，提取cid
-          fullUrl = imageUrl
-          cid = imageUrl.split('/').pop()
-        } else {
-          // 如果是cid，构造完整URL
-          cid = imageUrl
-          fullUrl = `https://h5.xiangtaihou-food.com/ipfs/${cid}`
-        }
-        this.businessLicenseList.push({
-          name: `营业执照图片`,
-          url: fullUrl,
-          cid: cid,
-          status: 'success',
-          uid: Date.now() + Math.random().toString(36).substr(2, 9)
-        })
-      }
-
-      // 初始化其他认证图片列表
-      this.otherCertList = []
-      if (this.companyInfo.credential.other_certificates && Array.isArray(this.companyInfo.credential.other_certificates)) {
-        this.companyInfo.credential.other_certificates.forEach((imageUrl, index) => {
+      // 初始化资质图片列表
+      this.credentialList = []
+      if (this.companyInfo.credential && Array.isArray(this.companyInfo.credential)) {
+        this.companyInfo.credential.forEach((imageUrl, index) => {
           let cid, fullUrl
           if (imageUrl.startsWith('http')) {
             fullUrl = imageUrl
@@ -644,8 +544,8 @@ export default {
             cid = imageUrl
             fullUrl = `https://h5.xiangtaihou-food.com/ipfs/${cid}`
           }
-          this.otherCertList.push({
-            name: `其他认证${index + 1}`,
+          this.credentialList.push({
+            name: `资质图片${index + 1}`,
             url: fullUrl,
             cid: cid,
             status: 'success',
@@ -692,18 +592,12 @@ export default {
         company_website: '',
         general_email: '',
         su_email: '',
-        credential: {
-          license_id: '',
-          issue_date: '',
-          business_license_image: '',
-          other_certificates: []
-        },
+        credential: [],
         company_images: []
       }
 
       // 重置图片列表
-      this.businessLicenseList = []
-      this.otherCertList = []
+      this.credentialList = []
       this.companyImagesList = []
     },
 
